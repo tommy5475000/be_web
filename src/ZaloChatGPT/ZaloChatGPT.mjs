@@ -67,7 +67,7 @@ app.post('/webhook', async (req, res) => {
     res.sendStatus(500);
   }
 });
-// thêm ip server 
-app.listen(12368, () => {
+// thêm ip server test
+app.listen(12368, "0.0.0.0", () => {
   console.log('Webhook is running on port 12368');
 });
