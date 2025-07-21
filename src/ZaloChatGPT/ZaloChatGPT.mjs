@@ -58,13 +58,13 @@ app.post('/webhook', async (req, res) => {
       
 
     // // Lưu vào DB bằng Prisma
-    // await prisma.message.create({
-    //   data: {
-    //     userId,
-    //     userMsg: userMessage,
-    //     botReply: reply,
-    //   },
-    // });
+    await prisma.message.create({
+      data: {
+        userId,
+        userMsg: userMessage,
+        botReply: reply,
+      },
+    });
 
     res.sendStatus(200);
   } catch (error) {
