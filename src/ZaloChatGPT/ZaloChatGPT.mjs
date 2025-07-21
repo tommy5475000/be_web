@@ -14,7 +14,8 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 app.post('/webhook', async (req, res) => {
   const data = req.body;
-
+  console.log(data);
+  
   try {
     const userId = data.sender.id;
     const userMessage = data.message.text;
