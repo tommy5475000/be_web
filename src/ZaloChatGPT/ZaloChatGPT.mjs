@@ -36,7 +36,7 @@ app.post('/webhook', async (req, res) => {
     const reply = chatData.choices?.[0]?.message?.content || "Xin lỗi, tôi không hiểu.";
 
     // Gửi lại phản hồi cho người dùng qua Zalo
-    await fetch("https://openapi.zalo.me/v2.0/oa/message", {
+    const mesZalo = await fetch("https://openapi.zalo.me/v2.0/oa/message", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -51,6 +51,11 @@ app.post('/webhook', async (req, res) => {
         },
       }),
     });
+
+    const zaloResult= await mesZalo.json();
+    console.log(zaloResult);
+    
+      
 
     // // Lưu vào DB bằng Prisma
     // await prisma.message.create({
