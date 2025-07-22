@@ -59,7 +59,7 @@ app.post('/webhook', async (req, res) => {
       
 
     // // Lưu vào DB bằng Prisma
-    await prisma.message.create({
+    await prisma.messageZalo.create({
       data: {
         userId,
         userMsg: userMessage,
