@@ -1,21 +1,21 @@
 import { PrismaClient } from "@prisma/client";
 import bodyParser from "body-parser";
 import fetch from "node-fetch";
-import express from "express"
-import dotenv from "dotenv"
+import express from "express";
+import dotenv from "dotenv";
+import fs from "fs";
 
 dotenv.config();
 const prisma = new PrismaClient();
 const app = express();
 app.use(bodyParser.json());
 
-const ZALO_TOKEN = process.env.ZALO_ACCESS_TOKEN;
+let ZALO_TOKEN = process.env.ZALO_ACCESS_TOKEN;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 app.post('/webhook', async (req, res) => {
   const data = req.body;
-  console.log(data);
-  
+
   try {
     const userId = data.sender.id;
     const userMessage = data.message.text;
@@ -36,29 +36,22 @@ app.post('/webhook', async (req, res) => {
     const chatData = await chatGptResponse.json();
     const reply = chatData.choices?.[0]?.message?.content || "Xin lỗi, tôi không hiểu.";
 
-    // Gửi lại phản hồi cho người dùng qua Zalo
-    const mesZalo = await fetch("https://openapi.zalo.me/v2.0/oa/message", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${ZALO_TOKEN}`,
-      },
-      body: JSON.stringify({
-        recipient: {
-          user_id: userId,
-        },
-        message: {
-          text: reply,
-        },
-      }),
-    });
+    // Gửi phản hồi qua Zalo
+    let zaloResponse = await sendZaloMessage(ZALO_TOKEN, userId, reply);
 
-    const zaloResult= await mesZalo.json();
-    console.log(zaloResult);
-    
-      
+    // Nếu token hết hạn thì tự động refresh
+    if (zaloResponse.error === -216) {
+      console.warn("Zalo token hết hạn. Đang refresh...");
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        ZALO_TOKEN = newToken;
+        zaloResponse = await sendZaloMessage(ZALO_TOKEN, userId, reply);
+      } else {
+        console.error("Không thể refresh token Zalo");
+      }
+    }
 
-    // // Lưu vào DB bằng Prisma
+    // Lưu vào DB
     await prisma.message.create({
       data: {
         userId,
@@ -73,7 +66,58 @@ app.post('/webhook', async (req, res) => {
     res.sendStatus(500);
   }
 });
-// thêm ip server test
+
 app.listen(12368, "0.0.0.0", () => {
   console.log('Webhook is running on port 12368');
 });
+
+async function sendZaloMessage(token, userId, message) {
+  const response = await fetch("https://openapi.zalo.me/v2.0/oa/message", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      recipient: { user_id: userId },
+      message: { text: message },
+    }),
+  });
+
+  return await response.json();
+}
+
+async function refreshAccessToken() {
+  try {
+    const response = await fetch("https://oauth.zaloapp.com/v4/oa/access_token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        app_id: process.env.ZALO_APP_ID,
+        grant_type: "refresh_token",
+        refresh_token: process.env.ZALO_REFRESH_TOKEN,
+        app_secret: process.env.ZALO_APP_SECRET
+        // app_secret nếu cần, thêm dòng sau nếu yêu cầu:
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.access_token) {
+      // Ghi token mới vào .env
+      const envPath = "./.env";
+      let envContent = fs.readFileSync(envPath, "utf8");
+      envContent = envContent.replace(/ZALO_ACCESS_TOKEN=.*/g, `ZALO_ACCESS_TOKEN=${data.access_token}`);
+      fs.writeFileSync(envPath, envContent);
+      console.log("Đã cập nhật ZALO_ACCESS_TOKEN trong .env");
+
+      return data.access_token;
+    } else {
+      console.error("Không nhận được access_token mới:", data);
+      return null;
+    }
+  } catch (error) {
+    console.error("Lỗi khi refresh token:", error);
+    return null;
+  }
+}

@@ -303,6 +303,7 @@ model invoiceIt {
   soTienBangChu    String?            @db.VarChar(255)
   tyGia            Int?
   caNhan           String?            @db.VarChar(255)
+  file             Bytes?
   users            users?             @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "invoiceIt_ibfk_1")
   invoiceItDetails invoiceItDetails[]
 
