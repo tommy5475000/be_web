@@ -25,4 +25,10 @@ export class InvoiceItController {
     return this.invoiceItService.createInv(body)
   }
 
+  // ----- UPLOAD FILE SCAN ----- //
+  @Post("uploadScan")
+  uploadScan(){
+    
+  }
+
 }

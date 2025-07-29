@@ -159,4 +159,9 @@ export class InvoiceItService {
     return { message: "Thành công", data, date: new Date() }
 
   }
+
+  // ----- UPLOAD FILE SCAN ----- //
+  async uploadScan(){
+    
+  }
 }
