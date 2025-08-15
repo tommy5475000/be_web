@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 let ZALO_TOKEN = process.env.ZALO_ACCESS_TOKEN;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-app.post('/webhook', async (req, res) => {
+app.post("/webhook", async (req, res) => {
   const data = req.body;
 
   try {
@@ -26,17 +26,20 @@ app.post('/webhook', async (req, res) => {
     }
 
     // Gửi message tới OpenAI
-    const chatGptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: userMessage }],
-      }),
-    });
+    const chatGptResponse = await fetch(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: userMessage }],
+        }),
+      }
+    );
 
     const chatData = await chatGptResponse.json();
     if (!chatData.choices || !chatData.choices[0]) {
@@ -44,7 +47,8 @@ app.post('/webhook', async (req, res) => {
       return res.sendStatus(500);
     }
 
-    const reply = chatData.choices[0].message.content || "Xin lỗi, tôi không hiểu.";
+    const reply =
+      chatData.choices[0].message.content || "Xin lỗi, tôi không hiểu.";
 
     // Gửi phản hồi qua Zalo
     let zaloResponse = await sendZaloMessage(ZALO_TOKEN, userId, reply);
@@ -60,6 +64,63 @@ app.post('/webhook', async (req, res) => {
       } else {
         console.error("Không thể refresh token Zalo");
         return res.sendStatus(500);
+      }
+    }
+
+    async function sendZaloMessage(token, userId, message) {
+      const response = await fetch("https://openapi.zalo.me/v2.0/oa/message", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          recipient: { user_id: userId },
+          message: { text: message },
+        }),
+      });
+
+      return await response.json();
+    }
+
+    async function refreshAccessToken() {
+      try {
+        const response = await fetch(
+          "https://oauth.zaloapp.com/v4/oa/access_token",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              secret_key: process.env.ZALO_APP_SECRET, // BẮT BUỘC
+            },
+            body: new URLSearchParams({
+              app_id: process.env.ZALO_APP_ID,
+              grant_type: "refresh_token",
+              refresh_token: process.env.ZALO_REFRESH_TOKEN,
+            }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (data.access_token) {
+          const envPath = "./.env";
+          let envContent = fs.readFileSync(envPath, "utf8");
+          envContent = envContent.replace(
+            /ZALO_ACCESS_TOKEN=.*/g,
+            `ZALO_ACCESS_TOKEN=${data.access_token}`
+          );
+          fs.writeFileSync(envPath, envContent);
+          console.log("✅ Đã cập nhật ZALO_ACCESS_TOKEN trong .env");
+
+          return data.access_token;
+        } else {
+          console.error("❌ Không nhận được access_token mới:", data);
+          return null;
+        }
+      } catch (error) {
+        console.error("❌ Lỗi khi refresh token:", error);
+        return null;
       }
     }
 
@@ -82,54 +143,3 @@ app.post('/webhook', async (req, res) => {
 app.listen(12368, "0.0.0.0", () => {
   console.log("Webhook is running on port 12368");
 });
-
-async function sendZaloMessage(token, userId, message) {
-  const response = await fetch("https://openapi.zalo.me/v2.0/oa/message", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      recipient: { user_id: userId },
-      message: { text: message },
-    }),
-  });
-
-  return await response.json();
-}
-
-async function refreshAccessToken() {
-  try {
-    const response = await fetch("https://oauth.zaloapp.com/v4/oa/access_token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "secret_key": process.env.ZALO_APP_SECRET, // BẮT BUỘC
-      },
-      body: new URLSearchParams({
-        app_id: process.env.ZALO_APP_ID,
-        grant_type: "refresh_token",
-        refresh_token: process.env.ZALO_REFRESH_TOKEN,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (data.access_token) {
-      const envPath = "./.env";
-      let envContent = fs.readFileSync(envPath, "utf8");
-      envContent = envContent.replace(/ZALO_ACCESS_TOKEN=.*/g, `ZALO_ACCESS_TOKEN=${data.access_token}`);
-      fs.writeFileSync(envPath, envContent);
-      console.log("✅ Đã cập nhật ZALO_ACCESS_TOKEN trong .env");
-
-      return data.access_token;
-    } else {
-      console.error("❌ Không nhận được access_token mới:", data);
-      return null;
-    }
-  } catch (error) {
-    console.error("❌ Lỗi khi refresh token:", error);
-    return null;
-  }
-}

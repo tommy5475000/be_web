@@ -304,6 +304,7 @@ model invoiceIt {
   tyGia            Int?
   caNhan           String?            @db.VarChar(255)
   file             Bytes?
+  status           String?            @db.VarChar(10)
   users            users?             @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "invoiceIt_ibfk_1")
   invoiceItDetails invoiceItDetails[]
 
@@ -337,6 +338,7 @@ model invoiceItDetails {
   tongTien          Int
   userId            Int?
   createDate        DateTime?  @db.Date
+  status            String?    @db.VarChar(10)
   invoiceIt         invoiceIt? @relation(fields: [soHd], references: [soHd], onDelete: NoAction, onUpdate: NoAction, map: "invoiceItDetails_ibfk_1")
   users             users?     @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "invoiceItDetails_ibfk_2")
 

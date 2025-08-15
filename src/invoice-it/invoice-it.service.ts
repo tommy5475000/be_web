@@ -12,11 +12,6 @@ export class InvoiceItService {
     let content = await this.prisma.invoiceIt.findMany({
       orderBy: {
         ngayHd: "desc"
-      },
-      include: {
-        invoiceItDetails: {
-
-        }
       }
     })
     return { message: "Thành công", content, date: new Date() }
@@ -24,70 +19,79 @@ export class InvoiceItService {
 
   // ----- IMPORT XML ----- //
   async importXml(body: any) {
-    const checkInv = await this.prisma.invoiceIt.findFirst({
-      where: {
-        AND: [
-          { soHd: parseInt(body.soHd) },
-          { kyHieuHd: body.kyHieuHd }
-        ]
-      }
-    })
-
-    if (checkInv) {
-      throw new HttpException({
-        status: HttpStatus.BAD_REQUEST,
-        message: "Số hóa đơn theo ký hiệu này đã tồn tại"
-      }, HttpStatus.BAD_REQUEST)
-    }
-
-    const data = await this.prisma.invoiceIt.create({
-      data: {
-        soHd: parseInt(body.soHd),
-        kyHieuHd: body.kyHieuHd,
-        ngayHd: body.ngayHd, // Là string như định nghĩa
-        loaiHinh: body.loaiHinh,
-        noiDung: body.noiDung || '',
-        tienThue: parseInt(body.tienThue),
-        tongTien: parseInt(body.tongTien),
-        ptThanhToan: body.ptThanhToan || '',
-        mst: body.mst,
-        tenNcc: body.tenNcc,
-        diaChi: body.diaChi,
-        soDt: body.soDt,
-        email: body.email,
-        stk: body.stk,
-        nganHang: body.nganHang,
-        webSite: body.webSite,
-        createDate: new Date(),
-        userId: body.userId || null,
-        soTienBangChu: body.soTienBangChu
-      }
-    });
-
-
-    if (Array.isArray(body.danhSachHang) && body.danhSachHang.length > 0) {
-      await this.prisma.invoiceItDetails.createMany({
-        data: body.danhSachHang.map(item => {
-          const tienThueItem = item.TTKhac?.TTin?.find(tt => tt.TTruong === "TThue")?.DLieu || '0';
-
-          return {
-            soHd: parseInt(body.soHd),
-            danhSachHang: item.THHDVu,
-            dvt: item.DVTinh,
-            sl: parseInt(item.SLuong),
-            donGia: parseInt(item.DGia),
-            thanhTienTruocVat: parseInt(item.ThTien),
-            loaiThue: item.TSuat || '',
-            tienThueDongHang: parseInt(tienThueItem),
-            thanhTien: parseInt(body.thanhTien || '0'),
-            tongTien: parseInt(body.tongTien || '0'),
-            createDate: new Date(),
-            userId: body.userId || null
-          };
+    console.log(body);
+    try {
+      return this.prisma.$transaction(async (tx) => {
+        const checkInv = await tx.invoiceIt.findFirst({
+          where: {
+            AND: [
+              { soHd: parseInt(body.soHd) },
+              { kyHieuHd: body.kyHieuHd }
+            ]
+          }
         })
-      });
+
+        if (checkInv) {
+          throw new HttpException({
+            status: HttpStatus.BAD_REQUEST,
+            message: `Hóa đơn số ${body.soHd} (${body.kyHieuHd}) đã tồn tại trong hệ thống.`
+          }, HttpStatus.BAD_REQUEST)
+        }
+
+
+        const data = await this.prisma.invoiceIt.create({
+          data: {
+            soHd: parseInt(body.soHd),
+            kyHieuHd: body.kyHieuHd,
+            ngayHd: body.ngayHd, // Là string như định nghĩa
+            loaiHinh: body.loaiHinh,
+            noiDung: body.noiDung || '',
+            tienThue: parseInt(body.tienThue),
+            tongTien: parseInt(body.tongTien),
+            ptThanhToan: body.ptThanhToan || '',
+            mst: body.mst,
+            tenNcc: body.tenNcc,
+            diaChi: body.diaChi,
+            soDt: body.soDt,
+            email: body.email,
+            stk: body.stk,
+            nganHang: body.nganHang,
+            webSite: body.webSite,
+            createDate: new Date(),
+            userId: body.userId || null,
+            soTienBangChu: body.soTienBangChu
+          }
+        });
+
+        if (Array.isArray(body.danhSachHang) && body.danhSachHang.length > 0) {
+          await tx.invoiceItDetails.createMany({
+            data: body.danhSachHang.map(item => {
+              const tienThueItem = item.TSuat
+                ? Math.round(parseInt(item.ThTien || '0') * parseFloat(item.TSuat) / 100)
+                : parseInt(item.tienThue || '0') || 0;
+              return {
+                soHd: parseInt(body.soHd),
+                danhSachHang: item.THHDVu,
+                dvt: item.DVTinh,
+                sl: parseInt(item.SLuong),
+                donGia: parseInt(item.DGia),
+                thanhTienTruocVat: parseInt(item.ThTien),
+                loaiThue: item.TSuat || '',
+                tienThueDongHang: tienThueItem,
+                thanhTien: parseInt(body.thanhTien || '0'),
+                tongTien: parseInt(body.tongTien || '0'),
+                createDate: new Date(),
+                userId: body.userId || null
+              };
+            })
+          });
+        }
+        return { message: "Thành công", data, date: new Date() }
+      })
+    } catch (error) {
+
     }
-    return { message: "Thành công", data, date: new Date() }
+
 
   }
 
@@ -161,7 +165,7 @@ export class InvoiceItService {
   }
 
   // ----- UPLOAD FILE SCAN ----- //
-  async uploadScan(){
-    
+  async uploadScan() {
+
   }
 }
