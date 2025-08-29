@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import axios from "axios";
 import getAccessToken from "./auth.mjs";
-import { create } from "domain";
+
 
 const prisma = new PrismaClient();
 
@@ -93,82 +93,6 @@ const saveBillsToDatabase = async (data) => {
           });
         }
 
-        // // Lưu chi tiết hóa đơn nếu có
-        // await Promise.all(
-        //   invoiceDetails.map(async (detail) => {
-        //     return prisma.invoiceDetails.upsert({
-        //       where: {
-        //         invoiceId_productCode: {
-        //           invoiceId: upsertedBill.sohd,
-        //           productCode: detail.productCode,
-        //         },
-        //       },
-        //       update: {
-        //         productId: detail.productId,
-        //         productCode: detail.productCode,
-        //         productName: detail.productName,
-        //         quantity: detail.quantity,
-        //         price: detail.price,
-        //         discount: detail.discount,
-        //         categoryId: detail.categoryId,
-        //         categoryName: detail.categoryName,
-        //         tradeMarkId: detail.tradeMarkId,
-        //         tradeMarkName: detail.tradeMarkName,
-        //         subTotal: detail.subTotal,
-        //         returnQuantity: detail.returnQuantity,
-        //         discountRatio: detail.discountRatio,
-        //         usePoint: detail.usePoint,
-        //         totalTax: detail.totalTax,
-        //       },
-        //       create: {
-        //         invoiceId: upsertedBill.sohd,
-        //         productId: detail.productId,
-        //         productCode: detail.productCode,
-        //         productName: detail.productName,
-        //         quantity: detail.quantity,
-        //         price: detail.price,
-        //         discount: detail.discount,
-        //         categoryId: detail.categoryId,
-        //         categoryName: detail.categoryName,
-        //         tradeMarkId: detail.tradeMarkId,
-        //         tradeMarkName: detail.tradeMarkName,
-        //         subTotal: detail.subTotal,
-        //         returnQuantity: detail.returnQuantity,
-        //         discountRatio: detail.discountRatio,
-        //         usePoint: detail.usePoint,
-        //         totalTax: detail.totalTax,
-        //       },
-        //     });
-        //   })
-        // );
-
-        // // ✅ Lưu chi tiết thuế
-        // if (detail.invoiceDetailTaxs && detail.invoiceDetailTaxs.length > 0) {
-        //   await Promise.all(
-        //     detail.invoiceDetailTaxs.map((tax) =>
-        //       prisma.invoiceItDetailTaxs.upsert({
-        //         where: {
-        //           detailId_taxId: {
-        //             detailId: savedDetail.id,
-        //             taxId: tax.taxId,
-        //           },
-        //         },
-        //         update: {
-        //           detailTax: tax.detailTax,
-        //           name: tax.name,
-        //           value: tax.value,
-        //         },
-        //         create: {
-        //           detailId: savedDetail.id,
-        //           taxId: tax.taxId,
-        //           detailTax: tax.detailTax,
-        //           name: tax.name,
-        //           value: tax.value,
-        //         },
-        //       })
-        //     )
-        //   );
-        // }
         await Promise.all(
           invoiceDetails.map(async (detail) => {
             const savedDetail = await prisma.invoiceDetails.upsert({

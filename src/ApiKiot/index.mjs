@@ -2,45 +2,45 @@ import { updateBills } from "./invoiceKiot.mjs";
 import cron from "node-cron";
 
 // Gán ngày theo giờ VN
-// let today = new Date().toLocaleDateString("en-CA", {
-//   timeZone: "Asia/Ho_Chi_Minh",
-// });
-// console.log(`🚀 App started - Today is: ${today}`);
+let today = new Date().toLocaleDateString("en-CA", {
+  timeZone: "Asia/Ho_Chi_Minh",
+});
+console.log(`🚀 App started - Today is: ${today}`);
 
 // Cron từ 8h đến 23h mỗi phút
-// cron.schedule(
-//   "*/1 8-23 * * *",
-//   () => {
-//     console.log("✅ [Cron] Running updateBills...");
-//     updateBills("2025-07-10")
-//       .then(() => {
-//         console.log(`✅ Bills updated: ${today}`);
-//       })
-//       .catch((err) => {
-//         console.error("❌ updateBills error:", err);
-//       });
-//   },
-//   {
-//     timezone: "Asia/Ho_Chi_Minh"
-//   }
-// );
+cron.schedule(
+  "*/1 8-23 * * *",
+  () => {
+    console.log("✅ [Cron] Running updateBills...");
+    updateBills("2025-07-10")
+      .then(() => {
+        console.log(`✅ Bills updated: ${today}`);
+      })
+      .catch((err) => {
+        console.error("❌ updateBills error:", err);
+      });
+  },
+  {
+    timezone: "Asia/Ho_Chi_Minh"
+  }
+);
 
-// cron.schedule(
-//   "0 0 * * *",
-//   () => {
-//     today = new Date().toLocaleDateString("en-CA", {
-//       timeZone: "Asia/Ho_Chi_Minh",
-//     });
-//     console.log(`📅 Chuyển sang ngày mới: ${today}`);
-//   },
-//   {
-//     timezone: "Asia/Ho_Chi_Minh"
-//   }
-// );
+cron.schedule(
+  "0 0 * * *",
+  () => {
+    today = new Date().toLocaleDateString("en-CA", {
+      timeZone: "Asia/Ho_Chi_Minh",
+    });
+    console.log(`📅 Chuyển sang ngày mới: ${today}`);
+  },
+  {
+    timezone: "Asia/Ho_Chi_Minh"
+  }
+);
 
 // // Giữ tiến trình sống
-// setInterval(() => {}, 1000 * 60 * 60);
-  updateBills("2025-08-29").then(() => console.log("Get bill successfully."));
+setInterval(() => {}, 1000 * 60 * 60);
+  updateBills(today).then(() => console.log("Get bill successfully."));
 
 
 // // // Thiết lập cron job nếu cần
