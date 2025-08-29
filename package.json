@@ -11,7 +11,7 @@
     "start:zalo": "node src/ZaloChatGPT/ZaloChatGPT.mjs",
     "start:kiot": "node src/ApiKiot/index.mjs",
     "start:nest": "nest start",
-    "start": "yarn start:zalo",
+    "start": "yarn start:kiot",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
