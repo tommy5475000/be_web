@@ -40,7 +40,7 @@ import cron from "node-cron";
 
 // // Giữ tiến trình sống
 // setInterval(() => {}, 1000 * 60 * 60);
-  updateBills("2025-08-03").then(() => console.log("Get bill successfully."));
+  updateBills("2025-08-29").then(() => console.log("Get bill successfully."));
 
 
 // // // Thiết lập cron job nếu cần

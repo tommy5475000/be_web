@@ -93,30 +93,32 @@ model Invoice {
   createdDate    String           @db.VarChar(255)
   modifiedDate   String?          @db.VarChar(255)
   description    String?          @db.VarChar(255)
+  totalTax       Decimal?         @db.Decimal(18, 4)
   invoiceDetails invoiceDetails[]
   payments       payBills?
 }
 
 model invoiceDetails {
-  id             Int      @id @default(autoincrement())
-  invoiceId      String
-  productId      Int
-  productCode    String   @db.VarChar(50)
-  productName    String   @db.VarChar(255)
-  categoryId     Int
-  categoryName   String   @db.VarChar(255)
-  tradeMarkId    Int?
-  tradeMarkName  String?  @db.VarChar(255)
-  quantity       Int
-  price          Decimal  @db.Decimal(18, 4)
-  discount       Decimal? @db.Decimal(18, 4)
-  discountRatio  Decimal? @db.Decimal(18, 4)
-  usePoint       Boolean?
-  note           String?  @db.VarChar(255)
-  subTotal       Decimal  @db.Decimal(18, 4)
-  serialNumbers  String?  @db.Text
-  returnQuantity Int
-  Invoice        Invoice  @relation(fields: [invoiceId], references: [sohd], onDelete: Cascade, map: "InvoiceDetails_ibfk_1")
+  id                  Int                   @id @default(autoincrement())
+  invoiceId           String
+  productId           Int
+  productCode         String                @db.VarChar(50)
+  productName         String                @db.VarChar(255)
+  categoryId          Int
+  categoryName        String                @db.VarChar(255)
+  tradeMarkId         Int?
+  tradeMarkName       String?               @db.VarChar(255)
+  quantity            Int
+  price               Decimal               @db.Decimal(18, 4)
+  discount            Decimal?              @db.Decimal(18, 4)
+  discountRatio       Decimal?              @db.Decimal(18, 4)
+  usePoint            Boolean?
+  note                String?               @db.VarChar(255)
+  subTotal            Decimal               @db.Decimal(18, 4)
+  serialNumbers       String?               @db.Text
+  returnQuantity      Int
+  Invoice             Invoice               @relation(fields: [invoiceId], references: [sohd], onDelete: Cascade, map: "InvoiceDetails_ibfk_1")
+  invoiceItDetailTaxs invoiceItDetailTaxs[]
 
   @@unique([invoiceId, productCode])
 }
@@ -352,4 +354,16 @@ model message {
   userMsg    String    @db.Text
   botReply   String    @db.Text
   createDate DateTime? @db.Timestamp(0)
+}
+
+model invoiceItDetailTaxs {
+  id             Int            @id @default(autoincrement())
+  detailId       Int
+  detailTax      Decimal?       @db.Decimal(18, 4)
+  taxId          Int?
+  name           String?        @db.VarChar(255)
+  value          Decimal?       @db.Decimal(18, 4)
+  invoiceDetails invoiceDetails @relation(fields: [detailId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_invoice_detail")
+
+  @@index([detailId], map: "fk_invoice_detail")
 }
