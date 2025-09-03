@@ -9,10 +9,10 @@ console.log(`🚀 App started - Today is: ${today}`);
 
 // Cron từ 8h đến 23h mỗi phút
 cron.schedule(
-  "*/1 8-23 * * *",
+  "*/5 8-23 * * *",
   () => {
     console.log("✅ [Cron] Running updateBills...");
-    updateBills("2025-07-10")
+    updateBills(today)
       .then(() => {
         console.log(`✅ Bills updated: ${today}`);
       })
@@ -41,8 +41,9 @@ cron.schedule(
 // // Giữ tiến trình sống
 setInterval(() => {}, 1000 * 60 * 60);
   updateBills(today).then(() => console.log("Get bill successfully."));
-
-
+  
+  
+  
 // // // Thiết lập cron job nếu cần
 // cron.schedule("*/1 8-23 * * *", () => {
 //   // Gói toàn bộ logic vào một hàm async

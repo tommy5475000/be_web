@@ -2,7 +2,6 @@ import { PrismaClient } from "@prisma/client";
 import axios from "axios";
 import getAccessToken from "./auth.mjs";
 
-
 const prisma = new PrismaClient();
 
 export const getAllInvoices = async (accessToken, createdDate) => {
@@ -142,29 +141,30 @@ const saveBillsToDatabase = async (data) => {
             // ✅ Xử lý invoiceDetailTaxs ngay trong vòng lặp
             if (detail.invoiceDetailTaxs?.length > 0) {
               await Promise.all(
-                detail.invoiceDetailTaxs.map((tax) =>
-                  prisma.invoiceItDetailTaxs.upsert({
-                    where: { id: tax.id }, // id này phải tồn tại hoặc Prisma sẽ tạo mới
-                    update: {
-                      detailTax: tax.detailTax,
-                      taxId: tax.taxId,
-                      name: tax.name,
-                      value: tax.value,
-                      invoiceDetails: {
-                        connect: { id: savedDetail.id }, // FK đến chi tiết hóa đơn
+                detail.invoiceDetailTaxs.map(
+                  (
+                    tax // 👈 thêm (tax)
+                  ) =>
+                    prisma.invoiceItDetailTaxs.upsert({
+                      where: {
+                        detailId_taxId: {
+                          detailId: savedDetail.id,
+                          taxId: tax.taxId,
+                        },
                       },
-                    },
-                    create: {
-                      // id: tax.id,
-                      detailTax: tax.detailTax,
-                      taxId: tax.taxId,
-                      name: tax.name,
-                      value: tax.value,
-                      invoiceDetails: {
-                        connect: { id: savedDetail.id },
+                      update: {
+                        detailTax: tax.detailTax,
+                        name: tax.name,
+                        value: tax.value,
                       },
-                    },
-                  })
+                      create: {
+                        detailId: savedDetail.id,
+                        detailTax: tax.detailTax,
+                        taxId: tax.taxId,
+                        name: tax.name,
+                        value: tax.value,
+                      },
+                    })
                 )
               );
             }
