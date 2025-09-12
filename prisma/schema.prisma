@@ -71,7 +71,7 @@ model TradeMark {
 
 model Invoice {
   stt            Int              @id @default(autoincrement())
-  id             Int
+  id             Int              @unique(map: "id")
   uuid           String?          @db.VarChar(255)
   sohd           String           @unique(map: "sohd") @db.VarChar(50)
   purchaseDate   String           @db.VarChar(255)
@@ -85,7 +85,7 @@ model Invoice {
   orderCode      String?          @db.VarChar(50)
   total          Decimal          @db.Decimal(18, 4)
   totalPayment   Decimal          @db.Decimal(18, 4)
-  discount       Decimal          @db.Decimal(18, 4)
+  discount       Decimal?         @db.Decimal(18, 4)
   discountRatio  Decimal?         @db.Decimal(18, 4)
   status         Int
   statusValue    String           @db.VarChar(50)
@@ -96,10 +96,11 @@ model Invoice {
   totalTax       Decimal?         @db.Decimal(18, 4)
   invoiceDetails invoiceDetails[]
   payments       payBills?
+  returnInvoice  returnInvoice[]
 }
 
 model invoiceDetails {
-  id                  Int                   @id @default(autoincrement()) 
+  id                  Int                   @id @default(autoincrement())
   invoiceId           String
   productId           Int
   productCode         String                @db.VarChar(50)
@@ -134,7 +135,6 @@ model invoiceItDetailTaxs {
 
   @@unique([detailId, taxId])
 }
-
 
 model payBills {
   id          Int     @id @default(autoincrement())
@@ -367,4 +367,44 @@ model message {
   userMsg    String    @db.Text
   botReply   String    @db.Text
   createDate DateTime? @db.Timestamp(0)
+}
+
+model returnDetails {
+  id            Int           @id @default(autoincrement())
+  code          String        @db.VarChar(255)
+  productId     Int?
+  productCode   String?       @db.VarChar(50)
+  productName   String?       @db.VarChar(255)
+  quantity      Int?
+  price         Decimal?      @db.Decimal(18, 4)
+  usePoint      Boolean?
+  subTotal      Int?
+  note          String?       @db.VarChar(255)
+  returnInvoice returnInvoice @relation(fields: [code], references: [code], onDelete: Cascade, onUpdate: NoAction, map: "returnDetails_ibfk_1")
+
+  @@index([code], map: "code")
+}
+
+model returnInvoice {
+  stt            Int             @id @default(autoincrement())
+  id             Int
+  code           String          @unique(map: "code") @db.VarChar(50)
+  invoiceId      Int?
+  returnDate     String?         @db.VarChar(255)
+  branchId       Int?
+  branchName     String?         @db.VarChar(50)
+  receivedById   Int?
+  soldByName     String?         @db.VarChar(255)
+  returnTotal    Decimal?        @db.Decimal(18, 4)
+  returnDiscount Decimal?        @db.Decimal(18, 4)
+  totalPayment   Int?
+  returnFee      Decimal?        @db.Decimal(18, 4)
+  status         Int?
+  statusValue    String?         @db.VarChar(50)
+  description    String?         @db.VarChar(255)
+  createdDate    String?         @db.VarChar(255)
+  returnDetails  returnDetails[]
+  Invoice        Invoice?        @relation(fields: [invoiceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "returnInvoice_ibfk_1")
+
+  @@index([invoiceId], map: "invoiceId")
 }

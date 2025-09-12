@@ -4,7 +4,7 @@ import getAccessToken from "./auth.mjs";
 
 const prisma = new PrismaClient();
 
-export const getAllInvoices = async (accessToken, createdDate) => {
+export const getAllInvoices = async (accessToken) => {
   if (!accessToken) {
     return null;
   }
@@ -26,7 +26,7 @@ export const getAllInvoices = async (accessToken, createdDate) => {
           pageSize,
           includePayment: true,
           orderBy: "code",
-          createdDate,
+          
         },
       });
 
@@ -115,6 +115,7 @@ const saveBillsToDatabase = async (data) => {
                 subTotal: detail.subTotal,
                 returnQuantity: detail.returnQuantity,
                 discountRatio: detail.discountRatio,
+                discount:detail.discount,
                 usePoint: detail.usePoint,
                 totalTax: detail.totalTax,
               },
@@ -133,6 +134,7 @@ const saveBillsToDatabase = async (data) => {
                 subTotal: detail.subTotal,
                 returnQuantity: detail.returnQuantity,
                 discountRatio: detail.discountRatio,
+                discount:detail.discount,
                 usePoint: detail.usePoint,
                 totalTax: detail.totalTax,
               },
@@ -222,10 +224,10 @@ const saveBillsToDatabase = async (data) => {
   }
 };
 
-const updateBills = async (createdDate) => {
+const updateBills = async () => {
   const accessToken = await getAccessToken();
   if (accessToken) {
-    const bills = await getAllInvoices(accessToken, createdDate);
+    const bills = await getAllInvoices(accessToken);
     if (bills) {
       await saveBillsToDatabase(bills);
     }
