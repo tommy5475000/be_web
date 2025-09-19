@@ -42,14 +42,14 @@ export const getAllPurchaseorders = async (accessToken) => {
 
       if (
         purchase.length < pageSize ||
-        (totalPurOrders && allPurOrders >= totalPurOrders)
+        (totalPurOrders && allPurOrders.length >= totalPurOrders)
       ) {
         console.log("Đang tải xuống");
         break;
       }
       currentItem += pageSize;
     } catch (error) {
-      console.log("Lỗi", error.response.data || error.messenge);
+      console.log("Lỗi", error.response.data || error.message);
       break;
     }
   }
@@ -63,7 +63,13 @@ const savePurOrdersToDatabase = async (data) => {
     return;
   }
   const savePromises = data.map(async (purchase) => {
-    const { code: sopn, purOrderDetails, purOrderPayments, ...rest } = purchase;
+    const {
+      code: sopn,
+      purchaseOrderDetails: purOrderDetails,
+      purchaseOrderDetailTaxes,
+      payments: purOrderPayments,
+      ...rest
+    } = purchase;
 
     try {
       const checkPurchase = await prisma.purchaseOrders.findUnique({
@@ -92,10 +98,10 @@ const savePurOrdersToDatabase = async (data) => {
       }
 
       // Lưu chi tiết phiếu nhập
-    
+      if (Array.isArray(purOrderDetails) && purOrderDetails.length > 0) {
         await Promise.all(
           purOrderDetails.map(async (detail) => {
-            return prisma.purOrderDetails.upsert({
+            return prisma.purchaseOrderDetails.upsert({
               where: {
                 purCode_productCode: {
                   purCode: upsertedPur.sopn,
@@ -104,6 +110,7 @@ const savePurOrdersToDatabase = async (data) => {
               },
               update: {
                 productId: detail.productId,
+                masterUnitId: detail.masterUnitId,
                 productCode: detail.productCode,
                 productName: detail.productName,
                 quantity: detail.quantity,
@@ -114,6 +121,7 @@ const savePurOrdersToDatabase = async (data) => {
               create: {
                 purCode: upsertedPur.sopn,
                 productId: detail.productId,
+                masterUnitId: detail.masterUnitId,
                 productCode: detail.productCode,
                 productName: detail.productName,
                 quantity: detail.quantity,
@@ -124,43 +132,41 @@ const savePurOrdersToDatabase = async (data) => {
             });
           })
         );
-      
-     
-        await Promise.all(
-          purOrderPayments.map(async (detail) => {
-            return prisma.purOrderPayments.upsert({
-              where: {
-                purCode_code: {
-                  purCode: upsertedPur.sopn,
-                  code: detail.code,
-                },
-              },
-              update: {
-                amount: detail.amount,
-                method: detail.method,
-                status: detail.status,
-                statusValue: detail.statusValue,
-                transDate: detail.transDate,
-              },
-              create: {
-               
-                  purCode: upsertedPur.sopn,
-                  code: detail.code,
-                  amount: detail.amount,
-                  method: detail.method,
-                  status: detail.status,
-                  statusValue: detail.statusValue,
-                  transDate: detail.transDate,
-                
-              },
-            });
-          })
-        );
-      
+      }
 
+      if (Array.isArray(purOrderPayments) && purOrderPayments.length > 0) {
+      await Promise.all(
+        purOrderPayments.map(async (detail) => {
+          return prisma.payments.upsert({
+            where: {
+              purCode_code: {
+                purCode: upsertedPur.sopn,
+                code: detail.code,
+              },
+            },
+            update: {
+              amount: detail.amount,
+              method: detail.method,
+              status: detail.status,
+              statusValue: detail.statusValue,
+              transDate: detail.transDate,
+            },
+            create: {
+              purCode: upsertedPur.sopn,
+              code: detail.code,
+              amount: detail.amount,
+              method: detail.method,
+              status: detail.status,
+              statusValue: detail.statusValue,
+              transDate: detail.transDate,
+            },
+          });
+        })
+      );
+    }
       console.log(`Số phiếu nhập ${sopn} đã được lưu hoặc update`);
     } catch (error) {
-      console.error(`Lỗi không lưu được ${sopn}:`, error.messenge, error.stack);
+      console.error(`Lỗi không lưu được ${sopn}:`, error.message, error.stack);
     }
   });
   await Promise.all(savePromises);

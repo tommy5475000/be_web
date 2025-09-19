@@ -4,7 +4,11 @@ import getAccessToken from "./auth.mjs";
 
 const prisma = new PrismaClient();
 
-export const getAllInvoices = async (accessToken) => {
+export const getAllInvoices = async (
+  accessToken,
+  fromPurchaseDate,
+  toPurchaseDate
+) => {
   if (!accessToken) {
     return null;
   }
@@ -25,8 +29,9 @@ export const getAllInvoices = async (accessToken) => {
           currentItem,
           pageSize,
           includePayment: true,
-          orderBy: "code",
-          
+          // orderBy: "code",
+          fromPurchaseDate,
+          toPurchaseDate,
         },
       });
 
@@ -67,7 +72,14 @@ const saveBillsToDatabase = async (data) => {
     const batch = data.slice(i, i + batchSize);
 
     const savePromises = batch.map(async (bill) => {
-      const { code: sohd, invoiceDetails, payments: payBills, ...rest } = bill;
+      const {
+        code: sohd,
+        invoiceDetails,
+        payments: payBills,
+        SaleChannel, // bỏ ra ngoài
+        invoiceOrderSurcharges,
+        ...rest
+      } = bill;
 
       try {
         const checkBill = await prisma.invoice.findUnique({
@@ -115,7 +127,7 @@ const saveBillsToDatabase = async (data) => {
                 subTotal: detail.subTotal,
                 returnQuantity: detail.returnQuantity,
                 discountRatio: detail.discountRatio,
-                discount:detail.discount,
+                discount: detail.discount,
                 usePoint: detail.usePoint,
                 totalTax: detail.totalTax,
               },
@@ -134,7 +146,7 @@ const saveBillsToDatabase = async (data) => {
                 subTotal: detail.subTotal,
                 returnQuantity: detail.returnQuantity,
                 discountRatio: detail.discountRatio,
-                discount:detail.discount,
+                discount: detail.discount,
                 usePoint: detail.usePoint,
                 totalTax: detail.totalTax,
               },
@@ -224,10 +236,14 @@ const saveBillsToDatabase = async (data) => {
   }
 };
 
-const updateBills = async () => {
+const updateBills = async (fromPurchaseDate, toPurchaseDate) => {
   const accessToken = await getAccessToken();
   if (accessToken) {
-    const bills = await getAllInvoices(accessToken);
+    const bills = await getAllInvoices(
+      accessToken,
+      fromPurchaseDate,
+      toPurchaseDate
+    );
     if (bills) {
       await saveBillsToDatabase(bills);
     }

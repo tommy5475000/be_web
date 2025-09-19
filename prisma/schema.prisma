@@ -94,6 +94,7 @@ model Invoice {
   modifiedDate   String?          @db.VarChar(255)
   description    String?          @db.VarChar(255)
   totalTax       Decimal?         @db.Decimal(18, 4)
+  saleChannelId  Int?
   invoiceDetails invoiceDetails[]
   payments       payBills?
   returnInvoice  returnInvoice[]
@@ -182,8 +183,8 @@ model purchaseOrders {
   modifiedDate         String?                @db.VarChar(255)
   createdDate          String                 @db.VarChar(255)
   supplierId           Int?
-  supplierName         String                 @db.VarChar(50)
-  supplierCode         String                 @db.VarChar(50)
+  supplierName         String?                @db.VarChar(50)
+  supplierCode         String?                @db.VarChar(50)
   purchaseById         Int
   purchaseName         String                 @db.VarChar(50)
   exReturnSuppliers    Decimal                @db.Decimal(18, 4)
@@ -202,6 +203,7 @@ model purchaseOrderDetails {
   price          Decimal        @db.Decimal(18, 4)
   discount       Decimal?       @db.Decimal(18, 4)
   discountRatio  Decimal?       @db.Decimal(18, 4)
+  masterUnitId   Int?
   purchaseOrders purchaseOrders @relation(fields: [purCode], references: [sopn], onDelete: Cascade, map: "purchaseOrderDetails_ibfk_1")
 
   @@unique([purCode, productCode])
@@ -209,7 +211,7 @@ model purchaseOrderDetails {
 
 model payments {
   id             Int            @id @default(autoincrement())
-  id_code        Int
+  id_code        Int?
   purCode        String
   code           String         @db.VarChar(50)
   amount         Decimal        @db.Decimal(18, 4)
@@ -382,7 +384,7 @@ model returnDetails {
   note          String?       @db.VarChar(255)
   returnInvoice returnInvoice @relation(fields: [code], references: [code], onDelete: Cascade, onUpdate: NoAction, map: "returnDetails_ibfk_1")
 
-  @@index([code], map: "code")
+  @@unique([code, productId])
 }
 
 model returnInvoice {
@@ -395,6 +397,9 @@ model returnInvoice {
   branchName     String?         @db.VarChar(50)
   receivedById   Int?
   soldByName     String?         @db.VarChar(255)
+  customerId     Int?
+  customerCode   String?         @db.VarChar(255)
+  customerName   String?         @db.VarChar(255)
   returnTotal    Decimal?        @db.Decimal(18, 4)
   returnDiscount Decimal?        @db.Decimal(18, 4)
   totalPayment   Int?
@@ -403,6 +408,9 @@ model returnInvoice {
   statusValue    String?         @db.VarChar(50)
   description    String?         @db.VarChar(255)
   createdDate    String?         @db.VarChar(255)
+  modifiedDate   String?         @db.VarChar(255)
+  totalTax       Int?
+  saleChannelId  Int?
   returnDetails  returnDetails[]
   Invoice        Invoice?        @relation(fields: [invoiceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "returnInvoice_ibfk_1")
 

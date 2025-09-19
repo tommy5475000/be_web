@@ -1,7 +1,10 @@
 import axios from "axios";
 import getAccessToken from "./auth.mjs";
+import { PrismaClient } from "@prisma/client";
 
-export const getAllReturnInvoice = async (accessToken, createdDate) => {
+const prisma = new PrismaClient();
+
+export const getAllReturnInvoice = async (accessToken) => {
   if (!accessToken) {
     return null;
   }
@@ -21,8 +24,8 @@ export const getAllReturnInvoice = async (accessToken, createdDate) => {
         params: {
           currentItem,
           pageSize,
-          orderBy: "code",
-          createdDate,
+          // orderBy: "code",
+          // createdDate,
         },
       });
 
@@ -36,8 +39,8 @@ export const getAllReturnInvoice = async (accessToken, createdDate) => {
       allReturnInvoice = allReturnInvoice.concat(returnInvoice);
 
       if (
-        returnInvoice < pageSize ||
-        (totalReturnInvoice && allReturnInvoice >= totalReturnInvoice)
+        returnInvoice.length < pageSize ||
+        (totalReturnInvoice && allReturnInvoice.length >= totalReturnInvoice)
       ) {
         break;
       }
@@ -63,46 +66,93 @@ const saveReturnInvoiceToDatabase = async (data) => {
     const batch = data.slice(i, i + batchSize);
 
     const savePromises = batch.map(async (item) => {
-      const {  returnDetails, ...rest } = item;
-    
-    try {
-        const checkReturn = await prisma.returnInvoice.findUnique({
-            where:{code}
-        })
+      const { returnDetails, code, invoiceId, ...rest } = item;
 
-        let upsertedReturn
+      try {
+        const checkReturn = await prisma.returnInvoice.findUnique({
+          where: { code },
+        });
+
+        let upsertedReturn;
         if (checkReturn) {
-            upsertedReturn = await prisma.returnInvoice.update({
-                where:{code},
-                data:{
-                    ...rest
-                }
-            })
-        } else{
-            upsertedReturn = await prisma.returnInvoice.create({
-                data:{
-                    code,
-                    ...rest
-                }
-            })
+          upsertedReturn = await prisma.returnInvoice.update({
+            where: { code },
+            data: {
+              ...rest,
+              ...(invoiceId && {
+                Invoice: {
+                  connect: { id: invoiceId },
+                },
+              }),
+            },
+          });
+        } else {
+          upsertedReturn = await prisma.returnInvoice.create({
+            data: {
+              code,
+              ...rest,
+              ...(invoiceId && {
+                Invoice: {
+                  connect: { id: invoiceId },
+                },
+              }),
+            },
+          });
         }
 
         await Promise.all(
-            returnDetails.map(async(detail)=>{
-                const savedDetail = await prisma.returnDetails.upsert({})
-            })
-        )
-    } catch (error) {
-        
-    }
+          returnDetails.map(async (detail) => {
+            const savedDetail = await prisma.returnDetails.upsert({
+              where: {
+                code_productId: {
+                  code: upsertedReturn.code,
+                  productId: detail.productId,
+                },
+              },
+              update: {
+                productId: detail.productId,
+                productCode: detail.productCode,
+                productName: detail.productName,
+                quantity: detail.quantity,
+                price: detail.price,
+                usePoint: detail.usePoint,
+                subTotal: detail.subTotal,
+                note: detail.note,
+              },
+              create: {
+                productId: detail.productId,
+                productCode: detail.productCode,
+                productName: detail.productName,
+                quantity: detail.quantity,
+                price: detail.price,
+                usePoint: detail.usePoint,
+                subTotal: detail.subTotal,
+                note: detail.note,
+                returnInvoice: {
+                  connect: { code: upsertedReturn.code }, // 🔑 kết nối tới returnInvoice đã tồn tại
+                },
+              },
+            });
+          })
+        );
+         console.log(`Invoice ${code} saved or updated.`);
+        console.log(`Total Invoice ${data.length} saved or updated.`);
+      } catch (error) {
+        console.error(
+          `Error saving return invoice ${code}:`,
+          error.message,
+          error.stack
+        );
+      }
     });
+    await Promise.all(savePromises);
   }
 };
 
-const updateReturnInvoice = async (createdDate) => {
+const updateReturnInvoice = async () => {
   const accessToken = await getAccessToken();
   if (accessToken) {
-    const returnInvoice = await getAllReturnInvoice(accessToken, createdDate);
+    const returnInvoice = await getAllReturnInvoice(accessToken);
     if (returnInvoice) {
       await saveReturnInvoiceToDatabase(returnInvoice);
     }
