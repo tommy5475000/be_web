@@ -66,9 +66,9 @@ import { updatePur } from "./purchaseorders.mjs";
 // today.setDate(today.getDate() - 1);
 // updateReturnInvoice().then(()=> console.log("Api bill trả hàng thành công"))
 // Chạy cập nhật người dùng
-// updateUser-().then(() => console.log("Users updated successfully."));
-updatePur().then(()=>console.log("Phiếu nhập đã api thành công"));
+// updateUser().then(() => console.log("Users updated successfully."));
+// updatePur().then(()=>console.log("Phiếu nhập đã api thành công"));
 // updateSups().then(()=> console.log("Nhà cung cấp đã api thành công "))
 // updateProducts().then(()=> console.log("Danh mục hành hóa đã api thành công "))
-// updateOneBill({code:"HD109637"}).then(()=>console.log("Đã get bill"));
-// updateBills("2024-10-01","2025-09-15").then(() => console.log("Bills updated successfully."));
+// updateOneBill({code:"HD000019"}).then(()=>console.log("Đã get bill"));
+// updateBills("2025-09-22").then(() => console.log("Bills updated successfully."));
