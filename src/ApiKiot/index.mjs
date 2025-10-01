@@ -67,7 +67,7 @@ import { updatePur } from "./purchaseorders.mjs";
 // updateReturnInvoice().then(()=> console.log("Api bill trả hàng thành công"))
 // Chạy cập nhật người dùng
 // updateUser().then(() => console.log("Users updated successfully."));
-// updatePur().then(()=>console.log("Phiếu nhập đã api thành công"));
+updatePur().then(()=>console.log("Phiếu nhập đã api thành công"));
 // updateSups().then(()=> console.log("Nhà cung cấp đã api thành công "))
 // updateProducts().then(()=> console.log("Danh mục hành hóa đã api thành công "))
 // updateOneBill({code:"HD000019"}).then(()=>console.log("Đã get bill"));
