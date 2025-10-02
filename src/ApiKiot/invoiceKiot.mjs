@@ -87,6 +87,7 @@ const saveBillsToDatabase = async (data) => {
         });
 
         let upsertedBill;
+        
         if (checkBill) {
           upsertedBill = await prisma.invoice.update({
             where: { sohd },

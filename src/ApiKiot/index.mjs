@@ -3,6 +3,8 @@ import cron from "node-cron";
 import { updateReturnInvoice } from "./returnInvoice.mjs";
 import { updateOneBill } from "./invoiceKiotGetIdOrCode.mjs";
 import { updatePur } from "./purchaseorders.mjs";
+import { updateTransfers } from "./transfers.mjs";
+import { updateBranches } from "./branches.mjs";
 
 // Gán ngày theo giờ VN
 // let today = new Date().toLocaleDateString("en-CA", {
@@ -67,8 +69,9 @@ import { updatePur } from "./purchaseorders.mjs";
 // updateReturnInvoice().then(()=> console.log("Api bill trả hàng thành công"))
 // Chạy cập nhật người dùng
 // updateUser().then(() => console.log("Users updated successfully."));
-updatePur().then(()=>console.log("Phiếu nhập đã api thành công"));
 // updateSups().then(()=> console.log("Nhà cung cấp đã api thành công "))
 // updateProducts().then(()=> console.log("Danh mục hành hóa đã api thành công "))
 // updateOneBill({code:"HD000019"}).then(()=>console.log("Đã get bill"));
 // updateBills("2025-09-22").then(() => console.log("Bills updated successfully."));
+// updateTransfers().then(()=>console.log("Đã lấy hết phiếu điều chuyển."));
+updateBranches().then(()=>console.log("Đã lấy hết chi nhánh"))
