@@ -61,10 +61,6 @@ import { updateBranches } from "./branches.mjs";
 //   })(); // <-- gọi hàm async tự chạy
 // });
 
-// import { updateProducts } from "./productKiot.mjs";
-// import { updatePur } from "./purchaseOrrders.mjs";
-// import { updateSups } from "./suppliersKiot.mjs";
-// import { updateUsers } from "./userKiot.mjs";
 // today.setDate(today.getDate() - 1);
 // updateReturnInvoice().then(()=> console.log("Api bill trả hàng thành công"))
 // Chạy cập nhật người dùng
@@ -72,6 +68,7 @@ import { updateBranches } from "./branches.mjs";
 // updateSups().then(()=> console.log("Nhà cung cấp đã api thành công "))
 // updateProducts().then(()=> console.log("Danh mục hành hóa đã api thành công "))
 // updateOneBill({code:"HD000019"}).then(()=>console.log("Đã get bill"));
-// updateBills("2025-09-22").then(() => console.log("Bills updated successfully."));
+updateBills("2025-09-30").then(() => console.log("Bills updated successfully."));
 // updateTransfers().then(()=>console.log("Đã lấy hết phiếu điều chuyển."));
-updateBranches().then(()=>console.log("Đã lấy hết chi nhánh"))
+// updateBranches().then(()=>console.log("Đã lấy hết chi nhánh"))
+// updatePur().then(()=>console.log("Đã cập nhập phiếu nhập hàng"))
