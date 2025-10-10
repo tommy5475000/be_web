@@ -72,24 +72,13 @@ const saveProductsToDatabase = async (data) => {
 
   const savePromises = data.map(async (product) => {
     const {
-      createdDate,
-      modifiedDate,
       id: kiotProductId,
+      productTaxs,
       attributes,
       ...rest // Lấy tất cả các thuộc tính khác
     } = product;
 
     try {
-      const formattedCreatedDate =
-        createdDate && !isNaN(new Date(createdDate).getTime())
-          ? new Date(createdDate).toISOString()
-          : null;
-
-      const formattedModifiedDate =
-        modifiedDate && !isNaN(new Date(modifiedDate).getTime())
-          ? new Date(modifiedDate).toISOString()
-          : null;
-
       // Kiểm tra sản phẩm đã tồn tại chưa
       const existingProduct = await prisma.product.findUnique({
         where: { kiotProductId },
@@ -102,7 +91,6 @@ const saveProductsToDatabase = async (data) => {
           where: { kiotProductId },
           data: {
             ...rest,
-            modifiedDate: formattedModifiedDate,
           },
         });
       } else {
@@ -111,11 +99,33 @@ const saveProductsToDatabase = async (data) => {
           data: {
             kiotProductId,
             ...rest,
-            createdDate: formattedCreatedDate,
-            modifiedDate: formattedModifiedDate,
           },
         });
       }
+
+      await Promise.all(
+        productTaxs.map(async(detail)=>{
+          return prisma.productTaxs.upsert({
+            where:{
+              productId_taxId:{
+                productId:upsertedProduct.id,
+                taxId:detail.taxId
+              }
+            },
+            update:{
+              taxId:detail.taxId,
+              value:detail.value,
+              name:detail.name
+            },
+            create:{
+              productId:upsertedProduct.id,
+              taxId:detail.taxId,
+              value:detail.value,
+              name:detail.name,
+            }
+          })
+        })
+      )
 
       // Lưu thuộc tính nếu có
       if (attributes && attributes.length > 0) {

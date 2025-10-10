@@ -24,6 +24,48 @@ model TaiKhoan {
   modifiedDate String? @db.VarChar(50)
 }
 
+model Product {
+  id                   Int          @id @default(autoincrement())
+  kiotProductId        Int?         @unique(map: "kiotProductId")
+  code                 String?      @db.VarChar(50)
+  barCode              String?      @db.VarChar(50)
+  name                 String?      @db.VarChar(255)
+  fullName             String?      @db.VarChar(255)
+  categoryId           Int?
+  categoryName         String?      @db.VarChar(255)
+  tradeMarkId          Int?
+  tradeMarkName        String?      @db.VarChar(255)
+  allowsSale           Boolean?
+  type                 Int?
+  hasVariants          Boolean?
+  basePrice            Decimal?     @db.Decimal(10, 2)
+  unit                 String?      @db.VarChar(50)
+  masterProductId      Int?
+  conversionValue      Int?
+  createdDate          String?      @db.VarChar(255)
+  modifiedDate         String?      @db.VarChar(255)
+  isActive             Boolean?
+  isLotSerialControl   Boolean?
+  isBatchExpireControl Boolean?
+  retailerId           Int?
+  weight               Float?       @db.Float
+  description          String?      @db.VarChar(255)
+  orderTemplate        String?      @db.VarChar(255)
+  Attribute            Attribute[]
+  productTaxs          productTaxs?
+}
+
+model productTaxs {
+  stt       Int      @id @default(autoincrement())
+  productId Int?     @unique(map: "productId")
+  taxId     Int?
+  value     Decimal? @db.Decimal(18, 4)
+  name      String?  @db.VarChar(50)
+  Product   Product? @relation(fields: [productId], references: [kiotProductId], onDelete: Cascade, onUpdate: NoAction, map: "productTaxs_ibfk_1")
+
+  @@unique([productId, taxId], map: "productTaxs_productId_taxId")
+}
+
 model Attribute {
   id             Int      @id @default(autoincrement())
   productId      Int?
@@ -34,35 +76,6 @@ model Attribute {
   @@unique([productId, attributeName], map: "productId")
 }
 
-model Product {
-  id                   Int         @id @default(autoincrement())
-  kiotProductId        Int?        @unique(map: "kiotProductId")
-  code                 String?     @db.VarChar(50)
-  barCode              String?     @db.VarChar(50)
-  name                 String?     @db.VarChar(255)
-  fullName             String?     @db.VarChar(255)
-  categoryId           Int?
-  categoryName         String?     @db.VarChar(255)
-  tradeMarkId          Int?
-  tradeMarkName        String?     @db.VarChar(255)
-  allowsSale           Boolean?
-  type                 Int?
-  hasVariants          Boolean?
-  basePrice            Decimal?    @db.Decimal(10, 2)
-  unit                 String?     @db.VarChar(50)
-  masterProductId      Int?
-  conversionValue      Int?
-  createdDate          DateTime?   @db.Timestamp(0)
-  modifiedDate         DateTime?   @db.Timestamp(0)
-  isActive             Boolean?
-  isLotSerialControl   Boolean?
-  isBatchExpireControl Boolean?
-  retailerId           Int?
-  weight               Float?      @db.Float
-  description          String?     @db.VarChar(255)
-  orderTemplate        String?     @db.VarChar(255)
-  Attribute            Attribute[]
-}
 
 model TradeMark {
   id   Int     @id
@@ -462,3 +475,44 @@ model branches {
   createdDate   String? @db.VarChar(255)
   email         String? @db.VarChar(255)
 }
+
+model categoryKiot {
+  stt                    Int                      @id @default(autoincrement())
+  categoryId             Int                      @unique(map: "categoryId")
+  categoryName           String?                  @db.VarChar(100)
+  retailerId             Int?
+  hasChild               Boolean?
+  modifiedDate           String?                  @db.VarChar(255)
+  createdDate            String?                  @db.VarChar(255)
+  childrenL2CategoryKiot childrenL2CategoryKiot[]
+}
+
+model childrenL2CategoryKiot {
+  id                     Int                      @id @default(autoincrement())
+  categoryId             Int                      @unique(map: "categoryId")
+  parentId               Int?
+  categoryName           String?                  @db.VarChar(100)
+  retailerId             Int?
+  hasChild               Boolean?
+  createdDate            String?                  @db.VarChar(255)
+  modifiedDate           String?                  @db.VarChar(255)
+  categoryKiot           categoryKiot?            @relation(fields: [parentId], references: [categoryId], onDelete: Cascade, onUpdate: NoAction, map: "childrenL2CategoryKiot_ibfk_1")
+  childrenL3CategoryKiot childrenL3CategoryKiot[]
+
+  @@unique([parentId, categoryName], map: "childrenL2CategoryKiot_parentId_categoryName")
+}
+
+model childrenL3CategoryKiot {
+  id                     Int                     @id @default(autoincrement())
+  categoryId             Int?
+  parentId               Int?
+  categoryName           String?                 @db.VarChar(100)
+  retailerId             Int?
+  hasChild               Boolean?
+  createdDate            String?                 @db.VarChar(255)
+  modifiedDate           String?                 @db.VarChar(255)
+  childrenL2CategoryKiot childrenL2CategoryKiot? @relation(fields: [parentId], references: [categoryId], onDelete: Cascade, onUpdate: NoAction, map: "childrenL3CategoryKiot_ibfk_1")
+
+  @@unique([parentId, categoryName], map: "childrenL3CategoryKiot_parentId_categoryName")
+}
+
