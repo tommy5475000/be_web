@@ -51,6 +51,9 @@ model Product {
   weight               Float?       @db.Float
   description          String?      @db.VarChar(255)
   orderTemplate        String?      @db.VarChar(255)
+  taxType              String?      @db.VarChar(50)
+  taxRate              String?      @db.VarChar(50)
+  taxname              String?      @db.VarChar(50)
   Attribute            Attribute[]
   productTaxs          productTaxs?
 }
@@ -75,7 +78,6 @@ model Attribute {
 
   @@unique([productId, attributeName], map: "productId")
 }
-
 
 model TradeMark {
   id   Int     @id
@@ -515,4 +517,3 @@ model childrenL3CategoryKiot {
 
   @@unique([parentId, categoryName], map: "childrenL3CategoryKiot_parentId_categoryName")
 }
-

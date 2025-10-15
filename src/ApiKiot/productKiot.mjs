@@ -69,8 +69,13 @@ const saveProductsToDatabase = async (data) => {
     console.error("No products to save.");
     return;
   }
+  const batchSize = 100
+  for (let i = 0; i < data.length; i+batchSize) {
+    const batch = data.slice(i,i+batchSize);
+    
+  }
 
-  const savePromises = data.map(async (product) => {
+  const savePromises = batch.map(async (product) => {
     const {
       id: kiotProductId,
       productTaxs,
