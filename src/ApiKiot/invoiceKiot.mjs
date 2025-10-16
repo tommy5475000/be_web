@@ -31,8 +31,9 @@ export const getAllInvoices = async (
           pageSize,
           includePayment: true,
           // orderBy: "code",
-          fromPurchaseDate,
-          toPurchaseDate,
+          // fromPurchaseDate,
+          // toPurchaseDate,
+          createdDate,
         },
       });
 
