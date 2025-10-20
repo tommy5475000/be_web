@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateInvoiceItDto } from './dto/create-invoice-it.dto';
 import { UpdateInvoiceItDto } from './dto/update-invoice-it.dto';
 import { PrismaClient } from '@prisma/client';
+import { InvoiceIt } from './entities/invoice-it.entity';
 
 @Injectable()
 export class InvoiceItService {
@@ -70,14 +71,15 @@ export class InvoiceItService {
                 ? Math.round(parseInt(item.ThTien || '0') * parseFloat(item.TSuat) / 100)
                 : parseInt(item.tienThue || '0') || 0;
               return {
-                soHd: parseInt(body.soHd),
+                invoiceItId:data.id,
+                // soHd: parseInt(body.soHd),
                 danhSachHang: item.THHDVu,
-                dvt: item.DVTinh,
+                dvt: item.DVTinh ||"",
                 sl: parseInt(item.SLuong),
                 donGia: parseInt(item.DGia),
                 thanhTienTruocVat: parseInt(item.ThTien),
                 loaiThue: item.TSuat || '',
-                tienThueDongHang: tienThueItem,
+                tienThueDongHang: tienThueItem||0,
                 thanhTien: parseInt(body.thanhTien || '0'),
                 tongTien: parseInt(body.tongTien || '0'),
                 createDate: new Date(),
@@ -89,10 +91,7 @@ export class InvoiceItService {
         return { message: "Thành công", data, date: new Date() }
       })
     } catch (error) {
-
     }
-
-
   }
 
   // ----- CREATEINV ----- //
@@ -145,7 +144,8 @@ export class InvoiceItService {
     if (Array.isArray(body.chiTiet) && body.chiTiet.length > 0) {
       await this.prisma.invoiceItDetails.createMany({
         data: body.chiTiet.map((item) => ({
-          soHd: body.soHd, // liên kết foreign key
+          invoiceItId:data.id,
+          soHd: body.soHd, 
           danhSachHang: item.tenHang,
           dvt: item.dvt || "Lần",
           sl: parseInt(item.sl),

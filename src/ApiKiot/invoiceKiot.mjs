@@ -162,7 +162,7 @@ const saveBillsToDatabase = async (data) => {
                   (
                     tax // 👈 thêm (tax)
                   ) =>
-                    prisma.invoiceItDetailTaxs.upsert({
+                    prisma.invoiceDetailTaxs.upsert({
                       where: {
                         detailId_taxId: {
                           detailId: savedDetail.id,

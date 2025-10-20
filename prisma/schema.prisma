@@ -42,8 +42,8 @@ model Product {
   unit                 String?      @db.VarChar(50)
   masterProductId      Int?
   conversionValue      Int?
-  createdDate          String?      @db.VarChar(255)
-  modifiedDate         String?      @db.VarChar(255)
+  createdDate          DateTime?    @db.Timestamp(6)
+  modifiedDate         DateTime?    @db.Timestamp(6)
   isActive             Boolean?
   isLotSerialControl   Boolean?
   isBatchExpireControl Boolean?
@@ -64,7 +64,7 @@ model productTaxs {
   taxId     Int?
   value     Decimal? @db.Decimal(18, 4)
   name      String?  @db.VarChar(50)
-  Product   Product? @relation(fields: [productId], references: [kiotProductId], onDelete: Cascade, onUpdate: NoAction, map: "productTaxs_ibfk_1")
+  Product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "productTaxs_ibfk_1")
 
   @@unique([productId, taxId], map: "productTaxs_productId_taxId")
 }
@@ -135,12 +135,12 @@ model invoiceDetails {
   serialNumbers       String?               @db.Text
   returnQuantity      Int
   Invoice             Invoice               @relation(fields: [invoiceId], references: [sohd], onDelete: Cascade, map: "InvoiceDetails_ibfk_1")
-  invoiceItDetailTaxs invoiceItDetailTaxs[]
+  invoiceItDetailTaxs invoiceDetailTaxs[]
 
   @@unique([invoiceId, productCode])
 }
 
-model invoiceItDetailTaxs {
+model invoiceDetailTaxs {
   id             Int            @id @default(autoincrement())
   detailId       Int
   detailTax      Decimal?       @db.Decimal(18, 4)
@@ -314,32 +314,58 @@ model suppliersLocal {
 }
 
 model invoiceIt {
-  soHd             Int                @id
-  kyHieuHd         String             @db.VarChar(20)
-  ngayHd           String             @db.VarChar(50)
-  loaiHinh         String             @db.VarChar(20)
-  noiDung          String             @db.Text
+  id               Int                 @id @default(autoincrement())   // ✅ ID tự tăng, khóa chính
+  soHd             Int
+  kyHieuHd         String              @db.VarChar(20)
+  ngayHd           String              @db.VarChar(50)
+  loaiHinh         String              @db.VarChar(20)
+  noiDung          String              @db.Text
   tienThue         Int
   tongTien         Int
-  createDate       DateTime?          @db.Timestamp(0)
+  createDate       DateTime?           @db.Timestamp(0)
   userId           Int?
-  ptThanhToan      String             @db.VarChar(50)
-  mst              String?            @db.VarChar(20)
-  tenNcc           String?            @db.VarChar(255)
-  diaChi           String?            @db.VarChar(255)
+  ptThanhToan      String              @db.VarChar(50)
+  mst              String?             @db.VarChar(20)
+  tenNcc           String?             @db.VarChar(255)
+  diaChi           String?             @db.VarChar(255)
   soDt             Int?
-  email            String?            @db.VarChar(255)
-  stk              String?            @db.VarChar(50)
-  nganHang         String?            @db.VarChar(255)
-  webSite          String?            @db.VarChar(255)
-  soTienBangChu    String?            @db.VarChar(255)
+  email            String?             @db.VarChar(255)
+  stk              String?             @db.VarChar(50)
+  nganHang         String?             @db.VarChar(255)
+  webSite          String?             @db.VarChar(255)
+  soTienBangChu    String?             @db.VarChar(255)
   tyGia            Int?
-  caNhan           String?            @db.VarChar(255)
+  caNhan           String?             @db.VarChar(255)
   file             Bytes?
-  status           String?            @db.VarChar(10)
-  users            users?             @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "invoiceIt_ibfk_1")
-  invoiceItDetails invoiceItDetails[]
+  status           String?             @db.VarChar(10)
+  users            users?              @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "invoiceIt_ibfk_1")
+  invoiceItDetails invoiceItDetails[]  // ✅ liên kết theo id
 
+  @@index([userId], map: "userId")
+  @@unique([soHd, kyHieuHd])            // ✅ đảm bảo cặp này duy nhất
+}
+
+
+model invoiceItDetails {
+  id                Int        @id @default(autoincrement())
+  invoiceItId       Int        // ✅ foreign key liên kết theo id thay vì soHd
+  danhSachHang      String     @db.VarChar(255)
+  dvt               String     @db.VarChar(20)
+  sl                Int
+  donGia            Int
+  thanhTienTruocVat Int
+  loaiThue          String     @db.VarChar(5)
+  tienThueDongHang  Int
+  thanhTien         Int
+  tongTien          Int
+  userId            Int?
+  createDate        DateTime?  @db.Date
+  status            String?    @db.VarChar(10)
+
+  invoiceIt         invoiceIt  @relation(fields: [invoiceItId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  users             users?     @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "invoiceItDetails_ibfk_2")
+
+  @@index([invoiceItId])
   @@index([userId], map: "userId")
 }
 
@@ -354,28 +380,6 @@ model users {
   createDate       DateTime           @db.Date
   invoiceIt        invoiceIt[]
   invoiceItDetails invoiceItDetails[]
-}
-
-model invoiceItDetails {
-  id                Int        @id @default(autoincrement())
-  soHd              Int?
-  danhSachHang      String     @db.VarChar(255)
-  dvt               String     @db.VarChar(20)
-  sl                Int
-  donGia            Int
-  thanhTienTruocVat Int
-  loaiThue          String     @db.VarChar(5)
-  tienThueDongHang  Int
-  thanhTien         Int
-  tongTien          Int
-  userId            Int?
-  createDate        DateTime?  @db.Date
-  status            String?    @db.VarChar(10)
-  invoiceIt         invoiceIt? @relation(fields: [soHd], references: [soHd], onDelete: NoAction, onUpdate: NoAction, map: "invoiceItDetails_ibfk_1")
-  users             users?     @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "invoiceItDetails_ibfk_2")
-
-  @@index([soHd], map: "soHd")
-  @@index([userId], map: "userId")
 }
 
 model message {
