@@ -237,72 +237,6 @@ export class InvoiceItService {
 
 
   // ----- EDIT INV ----- //
-  // async editInv(body: any) {
-  //   return this.prisma.$transaction(async (tx) => {
-  //     // 1️⃣ Update header
-  //     const editInv = await tx.invoiceIt.update({
-  //       where: {
-  //         soHd_kyHieuHd: {
-  //           soHd: parseInt(body.soHd),
-  //           kyHieuHd: body.kyHieuHd,
-  //         },
-  //       },
-  //       data: {
-  //         soHd: parseInt(body.soHd),
-  //         kyHieuHd: body.kyHieuHd,
-  //         ngayHd: body.ngayHd,
-  //         tenNcc: body.tenNcc,
-  //         diaChi: body.diaChi,
-  //         noiDung: body.noiDung,
-  //         tongTien: body.tongTien,       // hoặc tongTien bạn tính
-  //         loaiHinh: body.loaiHinh,
-  //         ptThanhToan: body.hinhThuc || '',
-  //         modifiedDate: new Date(),
-  //         stk: body.stk || null,
-  //         caNhan: body.caNhan || null,
-  //         nganHang: body.nganHang || null,
-  //         userId: body.userId || null,
-  //         mst: body.mst || null,
-  //         status: true,
-  //       },
-  //     });
-
-  //     // 2️⃣ XÓA hết detail cũ của hóa đơn này
-  //     await tx.invoiceItDetails.deleteMany({
-  //       where: { invoiceItId: editInv.id },
-  //     });
-
-  //     // 3️⃣ TẠO LẠI detail từ body.item
-  //     if (Array.isArray(body.item) && body.item.length > 0) {
-  //       await tx.invoiceItDetails.createMany({
-  //         data: body.item.map((item) => {
-  //           const sl = parseInt(item.sl) || 0;
-  //           const donGia = parseFloat(item.donGia) || 0;
-
-  //           const thanhTienTruocVat = sl * donGia;
-  //           const tienThueDongHang = thanhTienTruocVat * parseFloat(item.loaiThue)
-  //           return {
-  //             invoiceItId: editInv.id,
-  //             danhSachHang: item.danhSachHang,
-  //             dvt: item.dvt || '',
-  //             sl,
-  //             donGia,
-  //             loaiThue: item.loaiThue,
-  //             thanhTienTruocVat,
-  //             tienThueDongHang,
-  //             thanhTien: 0,
-  //             userId: body.userId || null,
-  //             modifiedDate: new Date(),
-  //             status: true,
-  //             tongTien: thanhTienTruocVat + (item.tienThueDongHang || 0),
-  //           };
-  //         }),
-  //       });
-  //     }
-
-  //     return editInv;
-  //   });
-  // }
   async editInv(body: any) {
     return this.prisma.$transaction(async (tx) => {
       const now = new Date();
@@ -437,13 +371,14 @@ export class InvoiceItService {
     });
   }
 
-
-
-
-
   // ----- UPLOAD FILE SCAN ----- //
-  async uploadScan(id: number) {
-
-
-  }
+async uploadScan(id: number, fileName: string) {
+  return this.prisma.invoiceIt.update({
+    where: { id: Number(id) },
+    data: {
+      file: fileName,
+      modifiedDate: new Date(),
+    },
+  });
+}
 }

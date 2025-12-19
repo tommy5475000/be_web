@@ -67,12 +67,12 @@ import { updateSups } from "./suppliersKiot.mjs";
 // today.setDate(today.getDate() - 1);
 // Chạy cập nhật người dùng
 // updateOneBill({code:"HD362592"}).then(()=>console.log("Đã get bill"));
-// updateBills("2025-10-15").then(() => console.log("Bills updated successfully."));
+updateBills().then(() => console.log("Bills updated successfully."));
 // updateUser().then(() => console.log("Users updated successfully."));
 // updateProducts().then(()=> console.log("Danh mục hành hóa đã api thành công "))
 // updateReturnInvoice().then(()=> console.log("Api bill trả hàng thành công"))
 // updateSups().then(()=> console.log("Nhà cung cấp đã api thành công "))
-updateTransfers().then(()=>console.log("Đã lấy hết phiếu điều chuyển."));
+// updateTransfers().then(()=>console.log("Đã lấy hết phiếu điều chuyển."));
 // updateBranches().then(()=>console.log("Đã lấy hết chi nhánh"))
 // updatePur().then(()=>console.log("Đã cập nhập phiếu nhập hàng"))
 // upCategories().then(()=>console.log("Đã cập nhật nhóm ngành hàng"));
