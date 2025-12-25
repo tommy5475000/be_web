@@ -24,61 +24,6 @@ model TaiKhoan {
   modifiedDate String? @db.VarChar(50)
 }
 
-model Product {
-  id                   Int          @id @default(autoincrement())
-  kiotProductId        Int?         @unique(map: "kiotProductId")
-  code                 String?      @db.VarChar(50)
-  barCode              String?      @db.VarChar(50)
-  name                 String?      @db.VarChar(255)
-  fullName             String?      @db.VarChar(255)
-  categoryId           Int?
-  categoryName         String?      @db.VarChar(255)
-  tradeMarkId          Int?
-  tradeMarkName        String?      @db.VarChar(255)
-  allowsSale           Boolean?
-  type                 Int?
-  hasVariants          Boolean?
-  basePrice            Decimal?     @db.Decimal(10, 2)
-  unit                 String?      @db.VarChar(50)
-  masterProductId      Int?
-  conversionValue      Int?
-  createdDate          DateTime?    @db.Timestamp(6)
-  modifiedDate         DateTime?    @db.Timestamp(6)
-  isActive             Boolean?
-  isLotSerialControl   Boolean?
-  isBatchExpireControl Boolean?
-  retailerId           Int?
-  weight               Float?       @db.Float
-  description          String?      @db.VarChar(255)
-  orderTemplate        String?      @db.VarChar(255)
-  taxType              String?      @db.VarChar(50)
-  taxRate              String?      @db.VarChar(50)
-  taxname              String?      @db.VarChar(50)
-  Attribute            Attribute[]
-  productTaxs          productTaxs?
-}
-
-model productTaxs {
-  stt       Int      @id @default(autoincrement())
-  productId Int?     @unique(map: "productId")
-  taxId     Int?
-  value     Decimal? @db.Decimal(18, 4)
-  name      String?  @db.VarChar(50)
-  Product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "productTaxs_ibfk_1")
-
-  @@unique([productId, taxId], map: "productTaxs_productId_taxId")
-}
-
-model Attribute {
-  id             Int      @id @default(autoincrement())
-  productId      Int?
-  attributeName  String?  @db.VarChar(50)
-  attributeValue String?  @db.VarChar(50)
-  Product        Product? @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Attribute_ibfk_1")
-
-  @@unique([productId, attributeName], map: "productId")
-}
-
 model TradeMark {
   id   Int     @id
   name String? @db.VarChar(255)
@@ -108,48 +53,36 @@ model Invoice {
   createdDate    String           @db.VarChar(255)
   modifiedDate   String?          @db.VarChar(255)
   description    String?          @db.VarChar(255)
-  totalTax       Decimal?         @db.Decimal(18, 4)
   saleChannelId  Int?
+  totalTax       Decimal?         @db.Decimal(18, 4)
   invoiceDetails invoiceDetails[]
   payments       payBills?
   returnInvoice  returnInvoice[]
 }
 
 model invoiceDetails {
-  id                  Int                 @id @default(autoincrement())
-  invoiceId           String
-  productId           Int
-  productCode         String              @db.VarChar(50)
-  productName         String              @db.VarChar(255)
-  categoryId          Int
-  categoryName        String              @db.VarChar(255)
-  tradeMarkId         Int?
-  tradeMarkName       String?             @db.VarChar(255)
-  quantity            Int
-  price               Decimal             @db.Decimal(18, 4)
-  discount            Decimal?            @db.Decimal(18, 4)
-  discountRatio       Decimal?            @db.Decimal(18, 4)
-  usePoint            Boolean?
-  note                String?             @db.VarChar(255)
-  subTotal            Decimal             @db.Decimal(18, 4)
-  serialNumbers       String?             @db.Text
-  returnQuantity      Int
-  invoiceItDetailTaxs invoiceDetailTaxs[]
-  Invoice             Invoice             @relation(fields: [invoiceId], references: [sohd], onDelete: Cascade, map: "InvoiceDetails_ibfk_1")
+  id                Int                 @id @default(autoincrement())
+  invoiceId         String
+  productId         Int
+  productCode       String              @db.VarChar(50)
+  productName       String              @db.VarChar(255)
+  categoryId        Int
+  categoryName      String              @db.VarChar(255)
+  tradeMarkId       Int?
+  tradeMarkName     String?             @db.VarChar(255)
+  quantity          Int
+  price             Decimal             @db.Decimal(18, 4)
+  discount          Decimal?            @db.Decimal(18, 4)
+  discountRatio     Decimal?            @db.Decimal(18, 4)
+  usePoint          Boolean?
+  note              String?             @db.VarChar(255)
+  subTotal          Decimal             @db.Decimal(18, 4)
+  serialNumbers     String?             @db.Text
+  returnQuantity    Int
+  invoiceDetailTaxs invoiceDetailTaxs[]
+  Invoice           Invoice             @relation(fields: [invoiceId], references: [sohd], onDelete: Cascade, map: "InvoiceDetails_ibfk_1")
 
   @@unique([invoiceId, productCode])
-}
-
-model invoiceDetailTaxs {
-  id             Int            @id @default(autoincrement())
-  detailId       Int
-  detailTax      Decimal?       @db.Decimal(18, 4)
-  taxId          Int?
-  name           String?        @db.VarChar(255)
-  value          Decimal?       @db.Decimal(18, 4)
-  invoiceDetails invoiceDetails @relation(fields: [detailId], references: [id], onDelete: Cascade)
-
-  @@unique([detailId, taxId])
 }
 
 model payBills {
@@ -314,7 +247,6 @@ model suppliersLocal {
 }
 
 model invoiceIt {
-  id               Int                @id @default(autoincrement())
   soHd             Int
   kyHieuHd         String             @db.VarChar(20)
   ngayHd           String             @db.VarChar(50)
@@ -337,8 +269,9 @@ model invoiceIt {
   tyGia            Int?
   caNhan           String?            @db.VarChar(255)
   file             String?            @db.VarChar(255)
-  status           Boolean?
+  id               Int                @id @default(autoincrement())
   modifiedDate     DateTime?          @db.Timestamp(0)
+  status           Boolean?
   users            users?             @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "invoiceIt_ibfk_1")
   invoiceItDetails invoiceItDetails[]
 
@@ -348,7 +281,6 @@ model invoiceIt {
 
 model invoiceItDetails {
   id                Int       @id @default(autoincrement())
-  invoiceItId       Int
   danhSachHang      String    @db.VarChar(255)
   dvt               String    @db.VarChar(20)
   sl                Int
@@ -360,13 +292,14 @@ model invoiceItDetails {
   tongTien          Int
   userId            Int?
   createDate        DateTime? @db.Date
-  status            Boolean?
+  invoiceItId       Int
   modifiedDate      DateTime? @db.Timestamp(0)
+  status            Boolean?
   users             users?    @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "invoiceItDetails_ibfk_2")
   invoiceIt         invoiceIt @relation(fields: [invoiceItId], references: [id], onDelete: Cascade)
 
-  @@index([invoiceItId])
   @@index([userId], map: "userId")
+  @@index([invoiceItId])
 }
 
 model users {
@@ -388,6 +321,72 @@ model message {
   userMsg    String    @db.Text
   botReply   String    @db.Text
   createDate DateTime? @db.Timestamp(0)
+}
+
+model branches {
+  stt           Int     @id @default(autoincrement())
+  id            Int?
+  branchName    String? @db.VarChar(50)
+  address       String? @db.VarChar(255)
+  locationName  String? @db.VarChar(255)
+  wardName      String? @db.VarChar(255)
+  contactNumber String? @db.VarChar(255)
+  retailerId    Int?
+  modifiedDate  String? @db.VarChar(255)
+  createdDate   String? @db.VarChar(255)
+  email         String? @db.VarChar(255)
+}
+
+model categoryKiot {
+  stt                    Int                      @id @default(autoincrement())
+  categoryId             Int                      @unique(map: "categoryId")
+  categoryName           String?                  @db.VarChar(100)
+  retailerId             Int?
+  hasChild               Boolean?
+  modifiedDate           String?                  @db.VarChar(255)
+  createdDate            String?                  @db.VarChar(255)
+  childrenL2CategoryKiot childrenL2CategoryKiot[]
+}
+
+model childrenL2CategoryKiot {
+  id                     Int                      @id @default(autoincrement())
+  categoryId             Int                      @unique(map: "categoryId")
+  parentId               Int?
+  categoryName           String?                  @db.VarChar(100)
+  retailerId             Int?
+  hasChild               Boolean?
+  createdDate            String?                  @db.VarChar(255)
+  modifiedDate           String?                  @db.VarChar(255)
+  categoryKiot           categoryKiot?            @relation(fields: [parentId], references: [categoryId], onDelete: Cascade, onUpdate: NoAction, map: "childrenL2CategoryKiot_ibfk_1")
+  childrenL3CategoryKiot childrenL3CategoryKiot[]
+
+  @@unique([parentId, categoryName], map: "childrenL2CategoryKiot_parentId_categoryName")
+}
+
+model childrenL3CategoryKiot {
+  id                     Int                     @id @default(autoincrement())
+  categoryId             Int?
+  parentId               Int?
+  categoryName           String?                 @db.VarChar(100)
+  retailerId             Int?
+  hasChild               Boolean?
+  createdDate            String?                 @db.VarChar(255)
+  modifiedDate           String?                 @db.VarChar(255)
+  childrenL2CategoryKiot childrenL2CategoryKiot? @relation(fields: [parentId], references: [categoryId], onDelete: Cascade, onUpdate: NoAction, map: "childrenL3CategoryKiot_ibfk_1")
+
+  @@unique([parentId, categoryName], map: "childrenL3CategoryKiot_parentId_categoryName")
+}
+
+model invoiceDetailTaxs {
+  id             Int            @id @default(autoincrement())
+  detailId       Int
+  detailTax      Decimal?       @db.Decimal(18, 4)
+  taxId          Int?
+  name           String?        @db.VarChar(255)
+  value          Decimal?       @db.Decimal(18, 4)
+  invoiceDetails invoiceDetails @relation(fields: [detailId], references: [id], onDelete: Cascade)
+
+  @@unique([detailId, taxId])
 }
 
 model returnDetails {
@@ -468,56 +467,78 @@ model transfersDetails {
   @@unique([code, productCode], map: "transfersDetails_code_productCode")
 }
 
-model branches {
-  stt           Int     @id @default(autoincrement())
-  id            Int?
-  branchName    String? @db.VarChar(50)
-  address       String? @db.VarChar(255)
-  locationName  String? @db.VarChar(255)
-  wardName      String? @db.VarChar(255)
-  contactNumber String? @db.VarChar(255)
-  retailerId    Int?
-  modifiedDate  String? @db.VarChar(255)
-  createdDate   String? @db.VarChar(255)
-  email         String? @db.VarChar(255)
+model attributes {
+  id             Int          @id @default(autoincrement())
+  kiotProductId  Int?
+  attributeName  String?      @db.VarChar(20)
+  attributeValue String?      @db.VarChar(20)
+  productKiot    productKiot? @relation(fields: [kiotProductId], references: [kiotProductId], onDelete: Cascade, map: "attributes_ibfk_1")
+
+  @@unique([kiotProductId, attributeName], map: "kiotProductId_attributeName")
 }
 
-model categoryKiot {
-  stt                    Int                      @id @default(autoincrement())
-  categoryId             Int                      @unique(map: "categoryId")
-  categoryName           String?                  @db.VarChar(100)
-  retailerId             Int?
-  hasChild               Boolean?
-  modifiedDate           String?                  @db.VarChar(255)
-  createdDate            String?                  @db.VarChar(255)
-  childrenL2CategoryKiot childrenL2CategoryKiot[]
+model inventoriesKiot {
+  id             Int          @id @default(autoincrement())
+  kiotProductId  Int?
+  branchId       Int?
+  branchName     String?      @db.VarChar(30)
+  cost           Decimal?     @db.Decimal(18, 4)
+  onHand         Int?
+  reserved       Int?
+  actualReserved Int?
+  minQuantity    Int?
+  maxQuantity    Int?
+  isActive       Boolean?
+  onOrder        Int?
+  productKiot    productKiot? @relation(fields: [kiotProductId], references: [kiotProductId], onDelete: Cascade, map: "inventoriesKiot_ibfk_1")
+
+  @@unique([kiotProductId, branchId], map: "inventoriesKiot")
 }
 
-model childrenL2CategoryKiot {
-  id                     Int                      @id @default(autoincrement())
-  categoryId             Int                      @unique(map: "categoryId")
-  parentId               Int?
-  categoryName           String?                  @db.VarChar(100)
-  retailerId             Int?
-  hasChild               Boolean?
-  createdDate            String?                  @db.VarChar(255)
-  modifiedDate           String?                  @db.VarChar(255)
-  categoryKiot           categoryKiot?            @relation(fields: [parentId], references: [categoryId], onDelete: Cascade, onUpdate: NoAction, map: "childrenL2CategoryKiot_ibfk_1")
-  childrenL3CategoryKiot childrenL3CategoryKiot[]
-
-  @@unique([parentId, categoryName], map: "childrenL2CategoryKiot_parentId_categoryName")
+model productKiot {
+  id                   Int               @id @default(autoincrement())
+  createdDate          String?           @db.VarChar(255)
+  masterCode           String?           @db.VarChar(50)
+  masterProductId      Int?
+  tradeMarkName        String?           @db.VarChar(50)
+  tradeMarkId          Int?
+  taxType              String?           @db.VarChar(255)
+  taxRate              String?           @db.VarChar(50)
+  taxname              String?           @db.VarChar(50)
+  kiotProductId        Int?              @unique(map: "productKiot_kiotProductId")
+  retailerId           Int?
+  code                 String?           @db.VarChar(100)
+  barCode              String?           @db.VarChar(50)
+  name                 String?           @db.VarChar(255)
+  fullName             String?           @db.VarChar(255)
+  categoryId           Int?
+  categoryName         String?           @db.VarChar(50)
+  allowsSale           Boolean?
+  type                 Int?
+  hasVariants          Boolean?
+  basePrice            Decimal?          @db.Decimal(18, 4)
+  weight               Int?
+  unit                 String?           @db.VarChar(20)
+  conversionValue      Int?
+  modifiedDate         String?           @db.VarChar(255)
+  isActive             Boolean?
+  description          String?           @db.VarChar(255)
+  isRewardPoint        Boolean?
+  isLotSerialControl   Boolean?
+  isBatchExpireControl Boolean?
+  orderTemplate        String?           @db.VarChar(255)
+  attributes           attributes[]
+  inventoriesKiot      inventoriesKiot[]
+  productKiotTax       productKiotTax[]
 }
 
-model childrenL3CategoryKiot {
-  id                     Int                     @id @default(autoincrement())
-  categoryId             Int?
-  parentId               Int?
-  categoryName           String?                 @db.VarChar(100)
-  retailerId             Int?
-  hasChild               Boolean?
-  createdDate            String?                 @db.VarChar(255)
-  modifiedDate           String?                 @db.VarChar(255)
-  childrenL2CategoryKiot childrenL2CategoryKiot? @relation(fields: [parentId], references: [categoryId], onDelete: Cascade, onUpdate: NoAction, map: "childrenL3CategoryKiot_ibfk_1")
+model productKiotTax {
+  id            Int          @id @default(autoincrement())
+  kiotProductId Int?
+  taxId         Int?
+  name          String?      @db.VarChar(30)
+  value         Decimal?     @db.Decimal(18, 4)
+  productKiot   productKiot? @relation(fields: [kiotProductId], references: [kiotProductId], onDelete: Cascade, map: "productKiotTax_ibfk_1")
 
-  @@unique([parentId, categoryName], map: "childrenL3CategoryKiot_parentId_categoryName")
+  @@unique([kiotProductId, taxId], map: "kiotProductId_taxId")
 }

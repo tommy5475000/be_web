@@ -59,6 +59,7 @@ export const billsApi = async (req, res) => {
           UsingCod,
           ModifiedDate,
           InvoiceDetails = [],  // Danh sách sản phẩm
+          invoiceDetailTaxs=[],
           InvoiceDelivery = null, // Thông tin giao hàng
           Payments = [],        // Danh sách thanh toán
         } = bill;
@@ -98,7 +99,9 @@ export const billsApi = async (req, res) => {
                 discountRatio: detail.DiscountRatio || null,
               })),
             },
+            invoiceDetailTaxs:{
 
+            },
             // // ✅ Cập nhật thông tin giao hàng nếu có
             // deliveryInfo: InvoiceDelivery
             //   ? {

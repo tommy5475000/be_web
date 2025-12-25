@@ -1,60 +1,53 @@
-import { PrismaClient } from "@prisma/client";
-import axios from "axios";
-import getAccessToken from "./auth.mjs";
+import { PrismaClient } from '@prisma/client';
+import axios from 'axios';
+import getAccessToken from './auth.mjs';
 
 const prisma = new PrismaClient();
 
 export const getAllProducts = async (accessToken) => {
-  if (!accessToken) {
-    return null;
-  }
+  if (!accessToken) return null;
 
   let allProducts = [];
-  let currentItem = 0; // Bắt đầu từ item đầu tiên
+  let currentItem = 0;
   const pageSize = 100;
   let totalProducts = null;
 
   while (true) {
     try {
       console.log(`Fetching items starting from ${currentItem}...`);
-      const response = await axios.get("https://public.kiotapi.com/products", {
+      const response = await axios.get('https://public.kiotapi.com/products', {
         headers: {
           Authorization: accessToken,
-          Retailer: "benthanhtsc",
+          Retailer: 'benthanhtsc',
         },
         params: {
           currentItem,
           pageSize,
+          includeInventory: true,
         },
       });
 
       const products = response.data.data;
       totalProducts = response.data.total || totalProducts;
 
-      if (!products || products.length === 0) {
-        break;
-      }
+      if (!products || products.length === 0) break;
 
       allProducts = allProducts.concat(products);
-      console.log(
-        `Fetched ${products.length} products starting from item ${currentItem}.`
-      );
+      console.log(`Fetched ${products.length} products from ${currentItem}.`);
 
-      // Nếu số lượng sản phẩm trả về nhỏ hơn pageSize hoặc đã đủ tổng sản phẩm, dừng vòng lặp
       if (
         products.length < pageSize ||
         (totalProducts && allProducts.length >= totalProducts)
       ) {
-        console.log("All products fetched, stopping.");
+        console.log('All products fetched, stopping.');
         break;
       }
 
-      // Cập nhật currentItem để lấy trang tiếp theo
       currentItem += pageSize;
     } catch (error) {
       console.error(
-        "Error fetching products:",
-        error.response?.data || error.message
+        'Error fetching products:',
+        error.response?.data || error.message,
       );
       break;
     }
@@ -64,115 +57,158 @@ export const getAllProducts = async (accessToken) => {
   return allProducts;
 };
 
-const saveProductsToDatabase = async (data) => {
-  if (!data || data.length === 0) {
-    console.error("No products to save.");
+// chạy theo batch để khỏi nổ Promise.all 23k
+const chunk = (arr, size) => {
+  const out = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+};
+
+export const saveProductsToDatabase = async (data) => {
+  if (!data?.length) {
+    console.error('No products to save.');
     return;
   }
-  const batchSize = 100
-  for (let i = 0; i < data.length; i+batchSize) {
-    const batch = data.slice(i,i+batchSize);
-    
+
+  const BATCH_SIZE = 200; // 100-500 tùy máy/db
+  const batches = chunk(data, BATCH_SIZE);
+
+  for (let bi = 0; bi < batches.length; bi++) {
+    const batch = batches[bi];
+
+    // mỗi batch chạy song song vừa phải
+    await Promise.all(
+      batch.map(async (product) => {
+        const {
+          id: kiotProductId,
+          images,
+          attributes = [],
+          productTaxs = [],
+          inventories = [],
+          ...rest
+        } = product;
+
+        try {
+          // 1) Upsert product
+          const upsertedProduct = await prisma.productKiot.upsert({
+            where: { kiotProductId },
+            update: { ...rest },
+            create: { kiotProductId, ...rest },
+          });
+
+          if (inventories.length) {
+            await Promise.all(
+              inventories.map((inv) =>
+                prisma.inventoriesKiot.upsert({
+                  where: {
+                    kiotProductId_branchId: {
+                      kiotProductId,
+                      branchId: inv.branchId,
+                    },
+                  },
+                  update: {
+                    branchName: inv.branchName,
+                    cost: inv.cost,
+                    onHand: inv.onHand,
+                    reserved: inv.reserved,
+                    actualReserved: inv.actualReserved,
+                    minQuantity: inv.minQuantity,
+                    maxQuantity: inv.maxQuantity,
+                    isActive: inv.isActive,
+                    onOrder: inv.onOrder,
+                  },
+                  create: {
+                    kiotProductId,
+                    branchId: inv.branchId,
+                    branchName: inv.branchName,
+                    cost: inv.cost,
+                    onHand: inv.onHand,
+                    reserved: inv.reserved,
+                    actualReserved: inv.actualReserved,
+                    minQuantity: inv.minQuantity,
+                    maxQuantity: inv.maxQuantity,
+                    isActive: inv.isActive,
+                    onOrder: inv.onOrder,
+                  },
+                }),
+              ),
+            );
+          }
+
+          // 2) Upsert product tax
+          if (productTaxs.length) {
+            await Promise.all(
+              productTaxs.map((detail) =>
+                prisma.productKiotTax.upsert({
+                  where: {
+                    kiotProductId_taxId: {
+                      kiotProductId, // lấy từ product.id
+                      taxId: detail.taxId,
+                    },
+                  },
+                  update: {
+                    name: detail.name,
+                    value: detail.value,
+                  },
+                  create: {
+                    kiotProductId,
+                    taxId: detail.taxId,
+                    name: detail.name,
+                    value: detail.value,
+                  },
+                }),
+              ),
+            );
+          }
+
+          // 3) Upsert attributes
+          if (attributes.length) {
+            await Promise.all(
+              attributes.map((attr) =>
+                prisma.attributes.upsert({
+                  where: {
+                    kiotProductId_attributeName: {
+                      kiotProductId, // ✅ ĐÚNG
+                      attributeName: attr.attributeName,
+                    },
+                  },
+                  update: {
+                    attributeValue: attr.attributeValue,
+                  },
+                  create: {
+                    kiotProductId,
+                    attributeName: attr.attributeName,
+                    attributeValue: attr.attributeValue,
+                  },
+                }),
+              ),
+            );
+          }
+
+          console.log(`✅ Saved/Updated: ${rest.name}`);
+        } catch (error) {
+          console.error(`❌ Error saving product ${rest.name}:`, error);
+        }
+      }),
+    );
+
+    console.log(
+      `Batch ${bi + 1}/${batches.length} done (${batch.length} items).`,
+    );
   }
-
-  const savePromises = batch.map(async (product) => {
-    const {
-      id: kiotProductId,
-      productTaxs,
-      attributes,
-      ...rest // Lấy tất cả các thuộc tính khác
-    } = product;
-
-    try {
-      // Kiểm tra sản phẩm đã tồn tại chưa
-      const existingProduct = await prisma.product.findUnique({
-        where: { kiotProductId },
-      });
-
-      let upsertedProduct;
-      if (existingProduct) {
-        // Nếu sản phẩm đã tồn tại, cập nhật
-        upsertedProduct = await prisma.product.update({
-          where: { kiotProductId },
-          data: {
-            ...rest,
-          },
-        });
-      } else {
-        // Nếu sản phẩm chưa tồn tại, tạo mới
-        upsertedProduct = await prisma.product.create({
-          data: {
-            kiotProductId,
-            ...rest,
-          },
-        });
-      }
-
-      await Promise.all(
-        productTaxs.map(async(detail)=>{
-          return prisma.productTaxs.upsert({
-            where:{
-              productId_taxId:{
-                productId:upsertedProduct.id,
-                taxId:detail.taxId
-              }
-            },
-            update:{
-              taxId:detail.taxId,
-              value:detail.value,
-              name:detail.name
-            },
-            create:{
-              productId:upsertedProduct.id,
-              taxId:detail.taxId,
-              value:detail.value,
-              name:detail.name,
-            }
-          })
-        })
-      )
-
-      // Lưu thuộc tính nếu có
-      if (attributes && attributes.length > 0) {
-        await Promise.all(
-          attributes.map((attr) => {
-            return prisma.attribute.upsert({
-              where: {
-                productId_attributeName: {
-                  productId: upsertedProduct.id, // Sử dụng ID của sản phẩm đã được upsert
-                  attributeName: attr.attributeName,
-                },
-              },
-              update: {
-                attributeValue: attr.attributeValue,
-              },
-              create: {
-                productId: upsertedProduct.id, // Sử dụng ID của sản phẩm đã được upsert
-                attributeName: attr.attributeName,
-                attributeValue: attr.attributeValue,
-              },
-            });
-          })
-        );
-      }
-      console.log(`Product ${rest.name} saved or updated.`);
-    } catch (error) {
-      console.error(`Error saving product ${rest.name}:`, error);
-    }
-  });
-
-  await Promise.all(savePromises);
 };
 
-// Thiết lập cron job để tự động cập nhật sản phẩm
-const updateProducts = async () => {
+export const updateProducts = async () => {
   const accessToken = await getAccessToken();
-  if (accessToken) {
+  if (!accessToken) return;
+
+  try {
     const products = await getAllProducts(accessToken);
-    if (products) {
+    if (products?.length) {
       await saveProductsToDatabase(products);
     }
+  } finally {
+    // QUAN TRỌNG: cho process thoát + giải phóng connection
+    await prisma.$disconnect();
   }
 };
-
-export { updateProducts, saveProductsToDatabase };

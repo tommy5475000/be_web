@@ -14,10 +14,10 @@ app.use(bodyParser.json());
 
 // Route đăng ký webhook
 app.post("/register-webhook", registerWebhook);
-app.post("/webhook/customer.update", customerApi);
-app.post("/webhook/invoice.update",billsApi);
+// app.post("/webhook/customer.update", customerApi);
+// app.post("/webhook/invoice.update",billsApi);
 // Start server
 const PORT = process.env.PORT || 12368;
 app.listen(PORT, () => {
-  console.log(`Server is running on http://10.1.49.29:${PORT}`);
+  console.log(`Server is running on http://mapinv.ddns.net:${PORT}`);
 });
