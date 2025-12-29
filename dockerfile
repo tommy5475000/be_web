@@ -14,7 +14,7 @@ RUN yarn prisma generate
 
 COPY . .
 
-CMD ["yarn","start"]
+CMD ["sh", "-c", "yarn start:dev & yarn start:kiot"]
 
 
 
