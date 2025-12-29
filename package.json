@@ -10,6 +10,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start:zalo": "node src/ZaloChatGPT/ZaloChatGPT.mjs",
     "start:kiot": "node src/ApiKiot/index.mjs",
+    "start:webhook":"node src/ApiKiot/Webhook/server.mjs",
     "start:nest": "nest start",
     "start": "yarn start:kiot",
     "start:dev": "nest start --watch",
