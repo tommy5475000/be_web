@@ -14,7 +14,7 @@ RUN yarn prisma generate
 
 COPY . .
 
-CMD ["sh", "-c", "yarn start:dev & yarn start:kiot"]
+CMD ["sh", "-c", "yarn start:dev & yarn start:kiot & yarn start:webhook"]
 
 
 
