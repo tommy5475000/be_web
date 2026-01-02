@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 
 export const getAllInvoices = async (
   accessToken,
+  // createdDate,
  {from,to}
 ) => {
   if (!accessToken) {
@@ -240,7 +241,10 @@ const saveBillsToDatabase = async (data) => {
   }
 };
 
-const updateBills = async ({from,to}) => {
+const updateBills = async (
+  {from,to}
+  // createdDate
+) => {
   const accessToken = await getAccessToken();
   if (accessToken) {
     const bills = await getAllInvoices(
@@ -248,6 +252,7 @@ const updateBills = async ({from,to}) => {
       // fromPurchaseDate,
       // toPurchaseDate,
       {from,to},
+      // createdDate,
     );
     if (bills) {
       await saveBillsToDatabase(bills);

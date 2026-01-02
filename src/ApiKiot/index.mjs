@@ -131,9 +131,9 @@ import getAccessToken from "./auth.mjs";
 // Kéo tay
 // Chạy cập nhật người dùng
 // updateOneBill({code:"HD362592"}).then(()=>console.log("Đã get bill"));
-// updateBills('2025-12-28').then(() => console.log("Bills updated successfully."));
+updateBills('2026-01-02').then(() => console.log("Bills updated successfully."));
 // updateUsers().then(() => console.log("Users updated successfully."));
-updateProducts().then(()=> console.log("Danh mục hành hóa đã api thành công "));
+// updateProducts().then(()=> console.log("Danh mục hành hóa đã api thành công "));
 // updateReturnInvoice().then(()=> console.log("Api bill trả hàng thành công"))
 // updateSups().then(()=> console.log("Nhà cung cấp đã api thành công "))
 // updateTransfers().then(()=>console.log("Đã lấy hết phiếu điều chuyển."));
