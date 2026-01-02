@@ -78,7 +78,7 @@ const saveBillsToDatabase = async (data) => {
         code: sohd,
         invoiceDetails,
         payments: payBills,
-        eInvoiceStatus,
+        // eInvoiceStatus,
         SaleChannel, // bỏ ra ngoài
         invoiceOrderSurcharges,
         ...rest

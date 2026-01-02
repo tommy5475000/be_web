@@ -85,6 +85,7 @@ export const saveProductsToDatabase = async (data) => {
           attributes = [],
           productTaxs = [],
           inventories = [],
+          purchaseTax,
           ...rest
         } = product;
 
@@ -107,6 +108,8 @@ export const saveProductsToDatabase = async (data) => {
                     },
                   },
                   update: {
+                    productCode: inv.productCode,
+                    productName: inv.productName,
                     branchName: inv.branchName,
                     cost: inv.cost,
                     onHand: inv.onHand,
@@ -119,6 +122,8 @@ export const saveProductsToDatabase = async (data) => {
                   },
                   create: {
                     kiotProductId,
+                    productCode: inv.productCode,
+                    productName: inv.productName,
                     branchId: inv.branchId,
                     branchName: inv.branchName,
                     cost: inv.cost,
@@ -155,6 +160,37 @@ export const saveProductsToDatabase = async (data) => {
                     taxId: detail.taxId,
                     name: detail.name,
                     value: detail.value,
+                  },
+                }),
+              ),
+            );
+          }
+          const purchaseTaxes = Array.isArray(purchaseTax)
+            ? purchaseTax
+            : purchaseTax
+              ? [purchaseTax]
+              : [];
+
+          if (purchaseTaxes.length) {
+            await Promise.all(
+              purchaseTaxes.map((item) =>
+                prisma.purchaseTax.upsert({
+                  where: {
+                    kiotProductId_taxId: {
+                      kiotProductId,
+                      taxId: item.taxId,
+                    },
+                  },
+                  update: {
+                    taxId: item.taxId,
+                    value: item.value,
+                    name: item.name,
+                  },
+                  create: {
+                    kiotProductId,
+                    taxId: item.taxId,
+                    value: item.value,
+                    name: item.name,
                   },
                 }),
               ),

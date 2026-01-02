@@ -55,6 +55,7 @@ model Invoice {
   description    String?          @db.VarChar(255)
   saleChannelId  Int?
   totalTax       Decimal?         @db.Decimal(18, 4)
+  eInvoiceStatus String?          @db.VarChar(50)
   invoiceDetails invoiceDetails[]
   payments       payBills?
   returnInvoice  returnInvoice[]
@@ -480,6 +481,8 @@ model attributes {
 model inventoriesKiot {
   id             Int          @id @default(autoincrement())
   kiotProductId  Int?
+  productCode    String?      @db.VarChar(30)
+  productName    String?      @db.VarChar(255)
   branchId       Int?
   branchName     String?      @db.VarChar(30)
   cost           Decimal?     @db.Decimal(18, 4)
@@ -530,6 +533,7 @@ model productKiot {
   attributes           attributes[]
   inventoriesKiot      inventoriesKiot[]
   productKiotTax       productKiotTax[]
+  purchaseTax          purchaseTax[]
 }
 
 model productKiotTax {
@@ -539,6 +543,17 @@ model productKiotTax {
   name          String?      @db.VarChar(30)
   value         Decimal?     @db.Decimal(18, 4)
   productKiot   productKiot? @relation(fields: [kiotProductId], references: [kiotProductId], onDelete: Cascade, map: "productKiotTax_ibfk_1")
+
+  @@unique([kiotProductId, taxId], map: "kiotProductId_taxId")
+}
+
+model purchaseTax {
+  id            Int          @id @default(autoincrement())
+  kiotProductId Int?
+  taxId         Int?
+  value         Decimal?     @db.Decimal(18, 4)
+  name          String?      @db.VarChar(20)
+  productKiot   productKiot? @relation(fields: [kiotProductId], references: [kiotProductId], onDelete: Cascade, map: "purchaseTax_ibfk_1")
 
   @@unique([kiotProductId, taxId], map: "kiotProductId_taxId")
 }
