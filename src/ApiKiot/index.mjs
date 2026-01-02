@@ -58,7 +58,7 @@ console.log("🚀 Kiot invoice cron started");
 console.log("🧾 lastSync file:", SYNC_FILE);
 
 cron.schedule(
-  "*/1 8-23 * * *",
+  "*/0.5 8-23 * * *",
   async () => {
     console.log("✅ [Cron] tick");
     await cronSyncBills();
