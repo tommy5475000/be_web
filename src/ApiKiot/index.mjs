@@ -70,7 +70,7 @@ setInterval(() => {}, 1000 * 60 * 60);
 
 
 
-Gán ngày theo giờ VN tự động kéo sẽ kéo từ đầu
+// Gán ngày theo giờ VN tự động kéo sẽ kéo từ đầu
 let today = new Date().toLocaleDateString("en-CA", {
   timeZone: "Asia/Ho_Chi_Minh",
 });
@@ -124,9 +124,6 @@ cron.schedule("*/1 8-23 * * *", () => {
     }
   })(); // <-- gọi hàm async tự chạy
 });
-
-today.setDate(today.getDate() - 1);
-
 
 // Kéo tay
 // Chạy cập nhật người dùng
