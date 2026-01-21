@@ -34,7 +34,7 @@ export const getAllInvoices = async (
           // orderBy: "code",
           // fromPurchaseDate,
           // toPurchaseDate,
-          createdDate,
+          // createdDate,
         },
       });
 
