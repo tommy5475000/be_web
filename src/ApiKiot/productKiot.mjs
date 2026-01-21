@@ -85,7 +85,7 @@ export const saveProductsToDatabase = async (data) => {
           attributes = [],
           productTaxs = [],
           inventories = [],
-          purchaseTax,
+          purchaseTax:productPurchaseTax,
           ...rest
         } = product;
 
@@ -165,16 +165,16 @@ export const saveProductsToDatabase = async (data) => {
               ),
             );
           }
-          const purchaseTaxes = Array.isArray(purchaseTax)
-            ? purchaseTax
-            : purchaseTax
-              ? [purchaseTax]
+          const purchaseTaxes = Array.isArray(productPurchaseTax)
+            ? productPurchaseTax
+            : productPurchaseTax
+              ? [productPurchaseTax]
               : [];
 
           if (purchaseTaxes.length) {
             await Promise.all(
               purchaseTaxes.map((item) =>
-                prisma.purchaseTax.upsert({
+                prisma.productPurchaseTax.upsert({
                   where: {
                     kiotProductId_taxId: {
                       kiotProductId,

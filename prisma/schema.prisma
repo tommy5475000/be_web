@@ -115,64 +115,6 @@ model Webhook {
   updatedAt   DateTime @default(now()) @db.DateTime(0)
 }
 
-model purchaseOrders {
-  stt                  Int                    @id @default(autoincrement())
-  id                   Int
-  sopn                 String                 @unique(map: "sopn") @db.VarChar(50)
-  retailerId           Int
-  description          String                 @db.VarChar(255)
-  branchId             Int
-  branchName           String                 @db.VarChar(50)
-  purchaseDate         String                 @db.VarChar(255)
-  discount             Decimal?               @db.Decimal(18, 4)
-  discountRatio        Decimal?               @db.Decimal(18, 4)
-  total                Decimal                @db.Decimal(18, 4)
-  totalPayment         Decimal                @db.Decimal(18, 4)
-  status               Int
-  modifiedDate         String?                @db.VarChar(255)
-  createdDate          String                 @db.VarChar(255)
-  supplierId           Int?
-  supplierName         String?                @db.VarChar(50)
-  supplierCode         String?                @db.VarChar(50)
-  purchaseById         Int
-  purchaseName         String                 @db.VarChar(50)
-  exReturnSuppliers    Decimal                @db.Decimal(18, 4)
-  exReturnThirdParty   Decimal                @db.Decimal(18, 4)
-  payments             payments[]
-  purchaseOrderDetails purchaseOrderDetails[]
-}
-
-model purchaseOrderDetails {
-  id             Int            @id @default(autoincrement())
-  purCode        String
-  productId      Int
-  productCode    String         @db.VarChar(50)
-  productName    String         @db.VarChar(255)
-  quantity       Int
-  price          Decimal        @db.Decimal(18, 4)
-  discount       Decimal?       @db.Decimal(18, 4)
-  discountRatio  Decimal?       @db.Decimal(18, 4)
-  masterUnitId   Int?
-  purchaseOrders purchaseOrders @relation(fields: [purCode], references: [sopn], onDelete: Cascade, map: "purchaseOrderDetails_ibfk_1")
-
-  @@unique([purCode, productCode])
-}
-
-model payments {
-  id             Int            @id @default(autoincrement())
-  id_code        Int?
-  purCode        String
-  code           String         @db.VarChar(50)
-  amount         Decimal        @db.Decimal(18, 4)
-  method         String         @db.VarChar(50)
-  status         Int
-  statusValue    String         @db.VarChar(255)
-  transDate      String         @db.VarChar(255)
-  purchaseOrders purchaseOrders @relation(fields: [purCode], references: [sopn], onDelete: Cascade, map: "payments_ibfk_1")
-
-  @@unique([purCode, code], map: "purCode_code")
-}
-
 model Customer {
   id            Int       @id @default(autoincrement())
   code          String    @unique
@@ -308,10 +250,14 @@ model users {
   userName         String             @db.VarChar(255)
   pass             String             @db.VarChar(255)
   email            String?            @db.VarChar(255)
-  brithday         DateTime?          @db.Date
+  brithday         String?            @db.VarChar(255)
   phone            String?            @db.VarChar(10)
   fullName         String?            @db.VarChar(255)
-  createDate       DateTime           @db.Date
+  createDate       String             @db.VarChar(255)
+  status           Boolean?
+  modifiedDate     String?            @db.VarChar(255)
+  vaiTro           String?            @db.VarChar(255)
+  address          String?            @db.VarChar(255)
   invoiceIt        invoiceIt[]
   invoiceItDetails invoiceItDetails[]
 }
@@ -499,41 +445,41 @@ model inventoriesKiot {
 }
 
 model productKiot {
-  id                   Int               @id @default(autoincrement())
-  createdDate          String?           @db.VarChar(255)
-  masterCode           String?           @db.VarChar(50)
+  id                   Int                  @id @default(autoincrement())
+  createdDate          String?              @db.VarChar(255)
+  masterCode           String?              @db.VarChar(50)
   masterProductId      Int?
-  tradeMarkName        String?           @db.VarChar(50)
+  tradeMarkName        String?              @db.VarChar(50)
   tradeMarkId          Int?
-  taxType              String?           @db.VarChar(255)
-  taxRate              String?           @db.VarChar(50)
-  taxname              String?           @db.VarChar(50)
-  kiotProductId        Int?              @unique(map: "productKiot_kiotProductId")
+  taxType              String?              @db.VarChar(255)
+  taxRate              String?              @db.VarChar(50)
+  taxname              String?              @db.VarChar(50)
+  kiotProductId        Int?                 @unique(map: "productKiot_kiotProductId")
   retailerId           Int?
-  code                 String?           @db.VarChar(100)
-  barCode              String?           @db.VarChar(50)
-  name                 String?           @db.VarChar(255)
-  fullName             String?           @db.VarChar(255)
+  code                 String?              @db.VarChar(100)
+  barCode              String?              @db.VarChar(50)
+  name                 String?              @db.VarChar(255)
+  fullName             String?              @db.VarChar(255)
   categoryId           Int?
-  categoryName         String?           @db.VarChar(50)
+  categoryName         String?              @db.VarChar(50)
   allowsSale           Boolean?
   type                 Int?
   hasVariants          Boolean?
-  basePrice            Decimal?          @db.Decimal(18, 4)
+  basePrice            Decimal?             @db.Decimal(18, 4)
   weight               Int?
-  unit                 String?           @db.VarChar(20)
+  unit                 String?              @db.VarChar(20)
   conversionValue      Int?
-  modifiedDate         String?           @db.VarChar(255)
+  modifiedDate         String?              @db.VarChar(255)
   isActive             Boolean?
-  description          String?           @db.VarChar(255)
+  description          String?              @db.VarChar(255)
   isRewardPoint        Boolean?
   isLotSerialControl   Boolean?
   isBatchExpireControl Boolean?
-  orderTemplate        String?           @db.VarChar(255)
+  orderTemplate        String?              @db.VarChar(255)
   attributes           attributes[]
   inventoriesKiot      inventoriesKiot[]
   productKiotTax       productKiotTax[]
-  purchaseTax          purchaseTax[]
+  productPurchaseTax   productPurchaseTax[]
 }
 
 model productKiotTax {
@@ -547,13 +493,86 @@ model productKiotTax {
   @@unique([kiotProductId, taxId], map: "kiotProductId_taxId")
 }
 
-model purchaseTax {
+model productPurchaseTax {
   id            Int          @id @default(autoincrement())
   kiotProductId Int?
   taxId         Int?
   value         Decimal?     @db.Decimal(18, 4)
   name          String?      @db.VarChar(20)
-  productKiot   productKiot? @relation(fields: [kiotProductId], references: [kiotProductId], onDelete: Cascade, map: "purchaseTax_ibfk_1")
+  productKiot   productKiot? @relation(fields: [kiotProductId], references: [kiotProductId], onDelete: Cascade, map: "productPurchaseTax_ibfk_1")
 
   @@unique([kiotProductId, taxId], map: "kiotProductId_taxId")
+}
+
+model payments {
+  id          BigInt     @id
+  code        String?    @db.VarChar(20)
+  amount      Decimal?   @db.Decimal(18, 4)
+  method      String?    @db.VarChar(20)
+  status      Int?
+  statusValue String?    @db.VarChar(30)
+  transDate   String?    @db.VarChar(255)
+  purcharse   purcharse? @relation(fields: [code], references: [code], onDelete: Cascade, map: "payments_ibfk_1")
+
+  @@unique([id, code], map: "id_code")
+  @@index([code], map: "code")
+}
+
+model purcharse {
+  id                   BigInt                 @id
+  retailerId           BigInt?
+  code                 String                 @unique(map: "purcharse_code") @db.VarChar(50)
+  description          String?                @db.VarChar(255)
+  branchId             Int?
+  branchName           String?                @db.VarChar(20)
+  purchaseDate         String?                @db.VarChar(255)
+  discount             Decimal?               @db.Decimal(18, 4)
+  discountRatio        Int?
+  total                Decimal?               @db.Decimal(18, 4)
+  totalPayment         Int?
+  status               Int?
+  createdDate          String?                @db.VarChar(255)
+  supplierId           Int?
+  supplierName         String?                @db.VarChar(50)
+  supplierCode         String?                @db.VarChar(20)
+  purchaseById         Int?
+  purchaseName         String?                @db.VarChar(255)
+  exReturnSuppliers    Decimal?               @db.Decimal(18, 4)
+  exReturnThirdParty   Decimal?               @db.Decimal(18, 4)
+  totalTax             Decimal?               @db.Decimal(18, 4)
+  payments             payments[]
+  purchaseOrderDetails purchaseOrderDetails[]
+}
+
+model purchaseOrderDetailTaxes {
+  id                   BigInt                @id @default(autoincrement())
+  lineNo               Int?
+  code                 String?               @db.VarChar(50)
+  detailId             BigInt?
+  retailerId           Int?
+  taxId                Int?
+  detailTax            Decimal?              @db.Decimal(18, 4)
+  taxName              String?               @db.VarChar(20)
+  taxValue             Decimal?              @db.Decimal(18, 4)
+  purchaseOrderDetails purchaseOrderDetails? @relation(fields: [code, lineNo], references: [code, lineNo], onDelete: Cascade, map: "purchaseOrderDetailTaxes_ibfk_1")
+
+  @@unique([code, lineNo, taxId], map: "uk_code_line_tax")
+}
+
+model purchaseOrderDetails {
+  id                       BigInt                     @id @default(autoincrement())
+  lineNo                   Int
+  code                     String?                    @db.VarChar(50)
+  productId                Int?
+  masterUnitId             Int?
+  productCode              String?                    @db.VarChar(20)
+  productName              String?                    @db.VarChar(255)
+  quantity                 Int?
+  price                    Decimal?                   @db.Decimal(18, 4)
+  discount                 Decimal?                   @db.Decimal(18, 4)
+  discountRatio            Int?
+  purchaseOrderDetailTaxes purchaseOrderDetailTaxes[]
+  purcharse                purcharse?                 @relation(fields: [code], references: [code], onDelete: Cascade, map: "purchaseOrderDetails_ibfk_1")
+
+  @@unique([code, lineNo], map: "code_lineNo")
 }
