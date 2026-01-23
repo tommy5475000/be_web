@@ -178,8 +178,8 @@ const saveBillsToDatabase = async (data) => {
                         priceAfterTax: tax.priceAfterTax || 0,
                         viewDiscountAfterTax: tax.viewDiscountAfterTax || 0,
                         discountAfterTax: tax.discountAfterTax || 0,
-                        discountByPromotionAfter:
-                          tax.discountByPromotionAfter || 0,
+                        discountByPromotionAfterTax:
+                          tax.discountByPromotionAfterTax || 0,
                         allocationDiscountAfterTax:
                           tax.allocationDiscountAfterTax || 0,
                       },
@@ -192,8 +192,8 @@ const saveBillsToDatabase = async (data) => {
                         priceAfterTax: tax.priceAfterTax || 0,
                         viewDiscountAfterTax: tax.viewDiscountAfterTax || 0,
                         discountAfterTax: tax.discountAfterTax || 0,
-                        discountByPromotionAfter:
-                          tax.discountByPromotionAfter || 0,
+                        discountByPromotionAfterTax:
+                          tax.discountByPromotionAfterTax || 0,
                         allocationDiscountAfterTax:
                           tax.allocationDiscountAfterTax || 0,
                       },
