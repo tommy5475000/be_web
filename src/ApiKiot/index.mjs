@@ -73,7 +73,7 @@ setInterval(() => {}, 1000 * 60 * 60);
 // Kéo tay
 // Chạy cập nhật người dùng
 // updateOneBill({code:"HDO1768042533841_698269"}).then(()=>console.log("Đã get bill"));
-// updateBills('2026-01-21').then(() => console.log("Bills updated successfully."));
+// updateBills('2026-01-23').then(() => console.log("Bills updated successfully."));
 // updateUsers().then(() => console.log("Users updated successfully."));
 // updateProducts().then(()=> console.log("Danh mục hành hóa đã api thành công "));
 // updateReturnInvoice().then(()=> console.log("Api bill trả hàng thành công"))

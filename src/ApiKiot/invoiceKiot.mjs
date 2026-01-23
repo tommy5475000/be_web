@@ -1,13 +1,13 @@
-import { PrismaClient } from "@prisma/client";
-import axios from "axios";
-import getAccessToken from "./auth.mjs";
+import { PrismaClient } from '@prisma/client';
+import axios from 'axios';
+import getAccessToken from './auth.mjs';
 
 const prisma = new PrismaClient();
 
 export const getAllInvoices = async (
   accessToken,
   // createdDate,
- {from,to}
+   {from,to}
 ) => {
   if (!accessToken) {
     return null;
@@ -20,10 +20,10 @@ export const getAllInvoices = async (
 
   while (true) {
     try {
-      const response = await axios.get("https://public.kiotapi.com/invoices", {
+      const response = await axios.get('https://public.kiotapi.com/invoices', {
         headers: {
           Authorization: accessToken,
-          Retailer: "benthanhtsc",
+          Retailer: 'benthanhtsc',
         },
         params: {
           currentItem,
@@ -56,7 +56,7 @@ export const getAllInvoices = async (
 
       currentItem += pageSize;
     } catch (error) {
-      console.error("Error fetching invoices:", error.message);
+      console.error('Error fetching invoices:', error.message);
       break;
     }
   }
@@ -66,7 +66,7 @@ export const getAllInvoices = async (
 
 const saveBillsToDatabase = async (data) => {
   if (!data || data.length === 0) {
-    console.error("No invoices to save");
+    console.error('No invoices to save');
     return;
   }
 
@@ -91,7 +91,7 @@ const saveBillsToDatabase = async (data) => {
         });
 
         let upsertedBill;
-        
+
         if (checkBill) {
           upsertedBill = await prisma.invoice.update({
             where: { sohd },
@@ -131,9 +131,10 @@ const saveBillsToDatabase = async (data) => {
                 tradeMarkName: detail.tradeMarkName,
                 subTotal: detail.subTotal,
                 returnQuantity: detail.returnQuantity,
-                discountRatio: detail.discountRatio||null,
-                discount: detail.discount||null,
+                discountRatio: detail.discountRatio || null,
+                discount: detail.discount || null,
                 usePoint: detail.usePoint,
+                allocationDiscount: detail.allocationDiscount,
               },
               create: {
                 invoiceId: upsertedBill.sohd,
@@ -152,6 +153,7 @@ const saveBillsToDatabase = async (data) => {
                 discountRatio: detail.discountRatio,
                 discount: detail.discount,
                 usePoint: detail.usePoint,
+                allocationDiscount: detail.allocationDiscount,
               },
             });
 
@@ -160,7 +162,7 @@ const saveBillsToDatabase = async (data) => {
               await Promise.all(
                 detail.invoiceDetailTaxs.map(
                   (
-                    tax // 👈 thêm (tax)
+                    tax, // 👈 thêm (tax)
                   ) =>
                     prisma.invoiceDetailTaxs.upsert({
                       where: {
@@ -173,6 +175,13 @@ const saveBillsToDatabase = async (data) => {
                         detailTax: tax.detailTax,
                         name: tax.name,
                         value: tax.value,
+                        priceAfterTax: tax.priceAfterTax || 0,
+                        viewDiscountAfterTax: tax.viewDiscountAfterTax || 0,
+                        discountAfterTax: tax.discountAfterTax || 0,
+                        discountByPromotionAfter:
+                          tax.discountByPromotionAfter || 0,
+                        allocationDiscountAfterTax:
+                          tax.allocationDiscountAfterTax || 0,
                       },
                       create: {
                         detailId: savedDetail.id,
@@ -180,12 +189,19 @@ const saveBillsToDatabase = async (data) => {
                         taxId: tax.taxId,
                         name: tax.name,
                         value: tax.value,
+                        priceAfterTax: tax.priceAfterTax || 0,
+                        viewDiscountAfterTax: tax.viewDiscountAfterTax || 0,
+                        discountAfterTax: tax.discountAfterTax || 0,
+                        discountByPromotionAfter:
+                          tax.discountByPromotionAfter || 0,
+                        allocationDiscountAfterTax:
+                          tax.allocationDiscountAfterTax || 0,
                       },
-                    })
-                )
+                    }),
+                ),
               );
             }
-          })
+          }),
         );
         // Lưu chi tiết thanh toán hóa đơn nếu có
 
@@ -222,7 +238,7 @@ const saveBillsToDatabase = async (data) => {
                 transDate: detail.transDate,
               },
             });
-          })
+          }),
         );
 
         console.log(`Invoice ${sohd} saved or updated.`);
@@ -231,7 +247,7 @@ const saveBillsToDatabase = async (data) => {
         console.error(
           `Error saving invoice ${sohd}:`,
           error.message,
-          error.stack
+          error.stack,
         );
       }
     });
@@ -241,7 +257,7 @@ const saveBillsToDatabase = async (data) => {
 
 const updateBills = async (
   {from,to}
-  // createdDate
+  // createdDate,
 ) => {
   const accessToken = await getAccessToken();
   if (accessToken) {
