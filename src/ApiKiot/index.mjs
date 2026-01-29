@@ -1,4 +1,4 @@
-// import cron from 'node-cron';
+import cron from 'node-cron';
 // import axios from 'axios';
 // import fs from 'fs';
 import { updateBills } from './invoiceKiot.mjs';
@@ -57,7 +57,7 @@ console.log('🚀 Kiot invoice cron started');
 console.log('🧾 lastSync file:', SYNC_FILE);
 
 cron.schedule(
-  '*/0.5 8-23 * * *',
+  '*.5 8-23 * * *',
   async () => {
     console.log('✅ [Cron] tick');
     await cronSyncBills();
