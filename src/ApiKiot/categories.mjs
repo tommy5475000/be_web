@@ -1,6 +1,6 @@
-import axios from "axios";
-import getAccessToken from "./auth.mjs";
-import { PrismaClient } from "@prisma/client";
+import axios from 'axios';
+import getAccessToken from './auth.mjs';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -17,18 +17,18 @@ export const getAllCategories = async (accessToken) => {
   while (true) {
     try {
       const response = await axios.get(
-        "https://public.kiotapi.com/categories",
+        'https://public.kiotapi.com/categories',
         {
           headers: {
             Authorization: accessToken,
-            Retailer: "benthanhtsc",
+            Retailer: 'benthanhtsc',
           },
           params: {
             currentItem,
             pageSize,
             hierachicalData: true,
           },
-        }
+        },
       );
 
       const categories = response.data.data;
@@ -48,7 +48,7 @@ export const getAllCategories = async (accessToken) => {
       }
       currentItem += pageSize;
     } catch (error) {
-      console.error("Lỗi không lấy được dữ liệu", error.message);
+      console.error('Lỗi không lấy được dữ liệu', error.message);
       break;
     }
   }
@@ -58,7 +58,7 @@ export const getAllCategories = async (accessToken) => {
 
 const saveCategoriesToDatabase = async (data) => {
   if (!data || data.length === 0) {
-    console.error("Không có dữ liệu để lấy về");
+    console.error('Không có dữ liệu để lấy về');
     return;
   }
 
@@ -126,7 +126,7 @@ const saveCategoriesToDatabase = async (data) => {
                 },
               });
 
-              if (detail.children?.length ) {
+              if (detail.children?.length) {
                 await Promise.all(
                   detail.children.map((item) =>
                     prisma.childrenL3CategoryKiot.upsert({
@@ -150,11 +150,11 @@ const saveCategoriesToDatabase = async (data) => {
                         hasChild: item.hasChild,
                         createdDate: item.createdDate,
                       },
-                    })
-                  )
+                    }),
+                  ),
                 );
               }
-            })
+            }),
           );
         }
 
@@ -164,7 +164,7 @@ const saveCategoriesToDatabase = async (data) => {
         console.error(
           `Lỗi lưu nhóm ngành hàng ${categoryId}:`,
           error.message,
-          error.stack
+          error.stack,
         );
       }
     });

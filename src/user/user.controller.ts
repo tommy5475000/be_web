@@ -20,4 +20,10 @@ export class UserController {
   getAllUser() {
     return this.userService.getAllUser();
   }
+
+  // ----- TẠO USER ----- //
+  @Post('createUser')
+  createUser(@Body() body: any) {
+    return this.userService.createUser(body);
+  }
 }

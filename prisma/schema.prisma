@@ -255,7 +255,7 @@ model users {
   brithday         String?            @db.VarChar(255)
   phone            String?            @db.VarChar(10)
   fullName         String?            @db.VarChar(255)
-  createDate       String             @db.VarChar(255)
+  createDate       DateTime           @db.Timestamp(0)
   status           Boolean?
   modifiedDate     String?            @db.VarChar(255)
   vaiTro           String?            @db.VarChar(255)

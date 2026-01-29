@@ -6,19 +6,19 @@ import { InvoiceIt } from './entities/invoice-it.entity';
 
 @Injectable()
 export class InvoiceItService {
-  prisma = new PrismaClient
+  prisma = new PrismaClient();
 
   // ----- LẤY THÔNG TIN HÓA ĐƠN ----- //
   async getDataXml() {
-    let content = await this.prisma.invoiceIt.findMany({
+    const content = await this.prisma.invoiceIt.findMany({
       include: {
-        invoiceItDetails: true
+        invoiceItDetails: true,
       },
       orderBy: {
-        ngayHd: "desc"
-      }
-    })
-    return { message: "Thành công", content, date: new Date() }
+        ngayHd: 'desc',
+      },
+    });
+    return { message: 'Thành công', content, date: new Date() };
   }
 
   // ----- IMPORT XML ----- //
@@ -28,20 +28,19 @@ export class InvoiceItService {
       return this.prisma.$transaction(async (tx) => {
         const checkInv = await tx.invoiceIt.findFirst({
           where: {
-            AND: [
-              { soHd: parseInt(body.soHd) },
-              { kyHieuHd: body.kyHieuHd }
-            ]
-          }
-        })
+            AND: [{ soHd: parseInt(body.soHd) }, { kyHieuHd: body.kyHieuHd }],
+          },
+        });
 
         if (checkInv) {
-          throw new HttpException({
-            status: HttpStatus.BAD_REQUEST,
-            message: `Hóa đơn số ${body.soHd} (${body.kyHieuHd}) đã tồn tại trong hệ thống.`
-          }, HttpStatus.BAD_REQUEST)
+          throw new HttpException(
+            {
+              status: HttpStatus.BAD_REQUEST,
+              message: `Hóa đơn số ${body.soHd} (${body.kyHieuHd}) đã tồn tại trong hệ thống.`,
+            },
+            HttpStatus.BAD_REQUEST,
+          );
         }
-
 
         const data = await this.prisma.invoiceIt.create({
           data: {
@@ -66,19 +65,22 @@ export class InvoiceItService {
             userId: body.userId || null,
             soTienBangChu: body.soTienBangChu,
             status: true,
-          }
+          },
         });
 
         if (Array.isArray(body.danhSachHang) && body.danhSachHang.length > 0) {
           await tx.invoiceItDetails.createMany({
-            data: body.danhSachHang.map(item => {
+            data: body.danhSachHang.map((item) => {
               const tienThueItem = item.TSuat
-                ? Math.round(parseInt(item.ThTien || '0') * parseFloat(item.TSuat) / 100)
+                ? Math.round(
+                    (parseInt(item.ThTien || '0') * parseFloat(item.TSuat)) /
+                      100,
+                  )
                 : parseInt(item.tienThue || '0') || 0;
               return {
                 invoiceItId: data.id,
                 danhSachHang: item.THHDVu,
-                dvt: item.DVTinh || "",
+                dvt: item.DVTinh || '',
                 sl: parseInt(item.SLuong),
                 donGia: parseInt(item.DGia),
                 thanhTienTruocVat: parseInt(item.ThTien),
@@ -88,41 +90,42 @@ export class InvoiceItService {
                 tongTien: parseInt(body.tongTien || '0'),
                 createDate: new Date(),
                 userId: body.userId || null,
-                status: true
+                status: true,
               };
-            })
+            }),
           });
         }
-        return { message: "Thành công", data, date: new Date() }
-      })
-    } catch (error) {
-    }
+        return { message: 'Thành công', data, date: new Date() };
+      });
+    } catch (error) {}
   }
 
   // ----- CREATEINV ----- //
   async createInv(body: any) {
     const checkSoHd = await this.prisma.invoiceIt.findFirst({
       where: {
-        AND: [
-          { soHd: parseInt(body.soHd) },
-          { kyHieuHd: body.kyHieuHd }
-        ]
-      }
-    })
+        AND: [{ soHd: parseInt(body.soHd) }, { kyHieuHd: body.kyHieuHd }],
+      },
+    });
 
     if (checkSoHd) {
-      throw new HttpException({
-        status: HttpStatus.BAD_REQUEST,
-        message: "Số hóa đơn theo ký hiệu này đã tồn tại"
-      }, HttpStatus.BAD_REQUEST)
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          message: 'Số hóa đơn theo ký hiệu này đã tồn tại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    const tongTien = Array.isArray(body.item) ? body.item.reduce((sum, item) => {
-      const sl = parseInt(item.sl) || 0
-      const donGia = parseFloat(item.donGia) || 0
-      const tyGia = parseFloat(item.tyGia) || 1;
-      return sum + sl * donGia * tyGia
-    }, 0) : 0;
+    const tongTien = Array.isArray(body.item)
+      ? body.item.reduce((sum, item) => {
+          const sl = parseInt(item.sl) || 0;
+          const donGia = parseFloat(item.donGia) || 0;
+          const tyGia = parseFloat(item.tyGia) || 1;
+          return sum + sl * donGia * tyGia;
+        }, 0)
+      : 0;
 
     const data = await this.prisma.invoiceIt.create({
       data: {
@@ -145,8 +148,7 @@ export class InvoiceItService {
         mst: body.mst || null,
         soTienBangChu: body.soTienBangChu || null,
         status: true,
-
-      }
+      },
     });
 
     // 4️⃣ Tạo chi tiết hóa đơn
@@ -162,11 +164,11 @@ export class InvoiceItService {
           return {
             invoiceItId: data.id,
             danhSachHang: item.danhSachHang, // ✅ khớp FE
-            dvt: item.dvt || "",
+            dvt: item.dvt || '',
             sl,
             donGia,
             thanhTienTruocVat,
-            loaiThue: `${item.loaiThue}%` || "KCT",
+            loaiThue: `${item.loaiThue}%` || 'KCT',
             tienThueDongHang: item.tienThueDongHang || 0,
             thanhTien: 0, // ✅ nếu chưa có thuế
             tongTien: tongTien,
@@ -174,11 +176,10 @@ export class InvoiceItService {
             createDate: new Date(),
             status: true,
           };
-        })
+        }),
       });
     }
-    return { message: "Thành công", data, date: new Date() }
-
+    return { message: 'Thành công', data, date: new Date() };
   }
 
   // -----USER DELETE INVOICE ----- //
@@ -234,7 +235,6 @@ export class InvoiceItService {
   }
 
   // ----- ADMIN DELETE INVOICE ----- //
-
 
   // ----- EDIT INV ----- //
   async editInv(body: any) {
@@ -333,8 +333,7 @@ export class InvoiceItService {
               data: {
                 ...commonData,
                 createDate: now,
-              }
-
+              },
             });
           } else {
             const created = await tx.invoiceItDetails.create({
@@ -372,13 +371,13 @@ export class InvoiceItService {
   }
 
   // ----- UPLOAD FILE SCAN ----- //
-async uploadScan(id: number, fileName: string) {
-  return this.prisma.invoiceIt.update({
-    where: { id: Number(id) },
-    data: {
-      file: fileName,
-      modifiedDate: new Date(),
-    },
-  });
-}
+  async uploadScan(id: number, fileName: string) {
+    return this.prisma.invoiceIt.update({
+      where: { id: Number(id) },
+      data: {
+        file: fileName,
+        modifiedDate: new Date(),
+      },
+    });
+  }
 }
