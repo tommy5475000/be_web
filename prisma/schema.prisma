@@ -263,6 +263,7 @@ model users {
   refreshToken     String?            @db.VarChar(255)
   invoiceIt        invoiceIt[]
   invoiceItDetails invoiceItDetails[]
+  userPass         userPass[]
 }
 
 model message {
@@ -583,4 +584,13 @@ model purchaseOrderDetails {
   purcharse                purcharse?                 @relation(fields: [code], references: [code], onDelete: Cascade, map: "purchaseOrderDetails_ibfk_1")
 
   @@unique([code, lineNo], map: "code_lineNo")
+}
+
+model userPass {
+  id     Int     @id @default(autoincrement())
+  userId Int?
+  pass   String? @db.VarChar(255)
+  users  users?  @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "userPass_ibfk_1")
+
+  @@index([userId], map: "userId")
 }

@@ -19,6 +19,7 @@ export class UserService {
       where: {
         AND: [{ userName: body.userName }, { email: body.email }],
       },
+
     });
 
     if (checkUser) {

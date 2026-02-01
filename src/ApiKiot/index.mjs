@@ -1,7 +1,7 @@
 import cron from 'node-cron';
-// import axios from 'axios';
-// import fs from 'fs';
+import fs from 'fs';
 import { updateBills } from './invoiceKiot.mjs';
+// import axios from 'axios';
 // import { updateReturnInvoice } from './returnInvoice.mjs';
 // import { updateOneBill } from './invoiceKiotGetIdOrCode.mjs';
 // import { updatePur } from './purchaseorders.mjs';
@@ -57,7 +57,7 @@ console.log('🚀 Kiot invoice cron started');
 console.log('🧾 lastSync file:', SYNC_FILE);
 
 cron.schedule(
-  '*.5 8-23 * * *',
+  '*/30 * 8-23 * * *',
   async () => {
     console.log('✅ [Cron] tick');
     await cronSyncBills();
@@ -70,7 +70,7 @@ setInterval(() => {}, 1000 * 60 * 60);
 // Kéo tay
 // Chạy cập nhật người dùng
 // updateOneBill({code:"HDO1768042533841_698269"}).then(()=>console.log("Đã get bill"));
-// updateBills('2026-01-28').then(() =>
+// updateBills('2026-01-31').then(() =>
 //   console.log('Bills updated successfully.'),
 // );
 // updateUsers().then(() => console.log("Users updated successfully."));
